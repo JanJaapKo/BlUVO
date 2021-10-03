@@ -318,12 +318,13 @@ def onHeartbeat():
 
 # Generic helper functions
 def DumpConfigToLog():
+    Domoticz.Debug("Parameters count: " + str(len(Parameters)))
     for x in Parameters:
         if Parameters[x] != "":
-            Domoticz.Debug("'" + x + "':'" + str(Parameters[x]) + "'")
+            Domoticz.Debug("Parameter: '" + x + "':'" + str(Parameters[x]) + "'")
     Domoticz.Debug("Settings count: " + str(len(Settings)))
     for x in Settings:
-        Domoticz.Debug("'" + x + "':'" + str(Settings[x]) + "'")
+        Domoticz.Debug("Setting: '" + x + "':'" + str(Settings[x]) + "'")
     Domoticz.Debug("Image count: " + str(len(Images)))
     for x in Images:
         Domoticz.Debug("'" + x + "':'" + str(Images[x]) + "'")
