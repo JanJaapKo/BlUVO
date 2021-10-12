@@ -85,18 +85,13 @@
 import Domoticz, logging
 import random
 from datetime import datetime
-from bluvo_main import initialise, pollcar, setcharge, lockdoors, setairco
-
-# global email, password, pin, vin, abrp_token,abrp_carmodel, WeatherApiKey, WeatherProvider, homelocation, forcedpolltimer, charginginterval
-global logger, lastHeartbeatTime, heartbeatinterval
+#from bluvo_main import initialise, pollcar, setcharge, lockdoors, setairco
+from bluvo_main import BlueLink
 
 class BasePlugin:
-    # global email, password, pin, vin, abrp_token,abrp_carmodel, WeatherApiKey, WeatherProvider, homelocation, forcedpolltimer, charginginterval
-    global logger, lastHeartbeatTime, heartbeatinterval
 
     def onStart(self):
-        global lastHeartbeatTime, heartbeatinterval
-        lastHeartbeatTime = 0
+        self.lastHeartbeatTime = 0
         if Parameters["SerialPort"] == "1":
             Domoticz.Debugging(1)
             DumpConfigToLog()
@@ -160,6 +155,7 @@ class BasePlugin:
         p_email = Parameters["Username"]
         p_password = Parameters["Password"]
         p_pin = Parameters["Port"]
+        pin = ('0000' + (str(p_pin) if isinstance(p_pin, int) else p_pin))[-4:]
         p_vin = Parameters["Mode6"]
         p_abrp_token = Parameters["Mode1"]
         p_abrp_carmodel = Parameters["Mode2"]
@@ -176,13 +172,18 @@ class BasePlugin:
         intervals=intervals.split(" ")
         p_forcepollinterval = float(intervals[0])
         p_charginginterval = float(intervals[1])
-        p_heartbeatinterval = float(intervals[2])
-        heartbeatinterval, initsuccess = initialise(p_email, p_password, p_pin, p_vin, p_abrp_token, p_abrp_carmodel, p_WeatherApiKey, p_WeatherProvider, p_homelocation, p_forcepollinterval, p_charginginterval, p_heartbeatinterval)
-        if initsuccess:
-                Domoticz.Heartbeat(15)
+        self.heartbeatinterval = float(intervals[2])
+        if self.heartbeatinterval == "":
+            self.heartbeatinterval = float(120)
         else:
-                Domoticz.Log ("Initialisation failed")
-                return False
+            self.heartbeatinterval = float(self.heartbeatinterval) * 60
+        self.bluelink = BlueLink(p_email, p_password, p_pin, p_vin, p_abrp_carmodel, p_abrp_token, p_WeatherApiKey, p_WeatherProvider, p_homelocation)
+        self.bluelink.initialise(p_forcepollinterval, p_charginginterval)
+        if self.bluelink.initSuccess:
+            Domoticz.Heartbeat(15)
+        else:
+            Domoticz.Log ("Initialisation failed")
+            return False
         return True
 
 
@@ -212,43 +213,46 @@ class BasePlugin:
         return True
 
     def onHeartbeat(self):
-        global lastHeartbeatTime
-        try:
-            manualForcePoll = (Devices[9].nValue == 1)
-            if manualForcePoll:
-                lastHeartbeatTime = 0
-                UpdateDevice(9, 0, 0)
-            # at night (between 2300 and 700) only one in 2 polls is done
-            heartbeatmultiplier = (1 if 7 <= datetime.now().hour <= 22 else 2)
-            if lastHeartbeatTime == 0 or float((datetime.now() - lastHeartbeatTime).total_seconds()) > (random.uniform(0.75,1.5)*(heartbeatmultiplier * heartbeatinterval)):
-                lastHeartbeatTime = datetime.now()
-                updated, parsedStatus, afstand, googlelocation = pollcar(manualForcePoll)
-                pluginName = Devices[11].Name.split("-")[0]
-                googlelocation = '<a target="_blank" rel="noopener noreferrer" ' + googlelocation + pluginName + " - location</a> "
-                if updated:
-                    logging.debug("about to update devices")
-                    logging.debug("parsedStatus: " + str(parsedStatus))
-                    UpdateDevice(1, 0, parsedStatus['odometer'])  # kmstand
-                    UpdateDevice(2, 0, parsedStatus['range'])  # range
-                    UpdateDevice(3, parsedStatus['charging'], parsedStatus['charging'])  # charging
-                    if (parsedStatus['chargeHV']>0):    #avoid to set soc=0% 
-                        UpdateDevice(4, parsedStatus['chargeHV'], parsedStatus['chargeHV'])  # soc
-                    UpdateDevice(5, parsedStatus['charge12V'], parsedStatus['charge12V'])  # soc12v
-                    UpdateDevice(6, parsedStatus['status12V'], parsedStatus['status12V'])  # status 12v
-                    UpdateDevice(7, parsedStatus['trunkopen'], parsedStatus['trunkopen'])  # tailgate
-                    UpdateDevice(12, parsedStatus['hoodopen'], parsedStatus['hoodopen'])  # hood
-                    UpdateDevice(13, 0, str(parsedStatus['speed'])+" km/h")  # current speed
-                    UpdateDevice(14, 0, str(parsedStatus['chargingTime']/60))  # remaining charge time in hrs
-                    if Devices[8].Name != str(afstand) or str(Devices[8].sValue) != googlelocation:
-                        Devices[8].Update(nValue=0, sValue=googlelocation, Name=pluginName + "- Distance from home: " + str(afstand))
-                        Domoticz.Log("Update " +  str(afstand) + "' (" + Devices[8].Name + ")")
-                    UpdateDevice(10, parsedStatus['locked'], parsedStatus['locked'])  # deuren
-                    pluginName = Devices[11].Name.split(":")[0]
-                    climate = pluginName + ": on" if (parsedStatus['climateactive'] == True) else pluginName + ": off"
-                    Level = parsedStatus['temperature']
-                    Devices[11].Update(nValue=0, sValue=str(Level), Name= climate)
-        except:
-            logging.debug("heartbeat wasnt set yet")
+        if self.bluelink.initSuccess == False:
+            #Domoticz.Log("heartbeat skipped because initialisation failed")
+            logging.debug("heartbeat skipped because initialisation failed")
+        else:
+            try:
+                manualForcePoll = (Devices[9].nValue == 1)
+                if manualForcePoll:
+                    self.lastHeartbeatTime = 0
+                    UpdateDevice(9, 0, 0)
+                # at night (between 2300 and 700) only one in 2 polls is done
+                heartbeatmultiplier = (1 if 7 <= datetime.now().hour <= 22 else 2)
+                if self.lastHeartbeatTime == 0 or float((datetime.now() - self.lastHeartbeatTime).total_seconds()) > (random.uniform(0.75,1.5)*(heartbeatmultiplier * self.heartbeatinterval)):
+                    self.lastHeartbeatTime = datetime.now()
+                    updated, parsedStatus, afstand, googlelocation = self.bluelink.pollcar(manualForcePoll)
+                    pluginName = Devices[11].Name.split("-")[0]
+                    googlelocation = '<a target="_blank" rel="noopener noreferrer" ' + googlelocation + pluginName + " - location</a> "
+                    if updated:
+                        logging.debug("about to update devices")
+                        logging.debug("parsedStatus: " + str(parsedStatus))
+                        UpdateDevice(1, 0, parsedStatus['odometer'])  # kmstand
+                        UpdateDevice(2, 0, parsedStatus['range'])  # range
+                        UpdateDevice(3, parsedStatus['charging'], parsedStatus['charging'])  # charging
+                        if (parsedStatus['chargeHV']>0):    #avoid to set soc=0% 
+                            UpdateDevice(4, parsedStatus['chargeHV'], parsedStatus['chargeHV'])  # soc
+                        UpdateDevice(5, parsedStatus['charge12V'], parsedStatus['charge12V'])  # soc12v
+                        UpdateDevice(6, parsedStatus['status12V'], parsedStatus['status12V'])  # status 12v
+                        UpdateDevice(7, parsedStatus['trunkopen'], parsedStatus['trunkopen'])  # tailgate
+                        UpdateDevice(12, parsedStatus['hoodopen'], parsedStatus['hoodopen'])  # hood
+                        UpdateDevice(13, 0, str(parsedStatus['speed'])+" km/h")  # current speed
+                        UpdateDevice(14, 0, str(parsedStatus['chargingTime']/60))  # remaining charge time in hrs
+                        if Devices[8].Name != str(afstand) or str(Devices[8].sValue) != googlelocation:
+                            Devices[8].Update(nValue=0, sValue=googlelocation, Name=pluginName + "- Distance from home: " + str(afstand))
+                            Domoticz.Log("Update " +  str(afstand) + "' (" + Devices[8].Name + ")")
+                        UpdateDevice(10, parsedStatus['locked'], parsedStatus['locked'])  # deuren
+                        pluginName = Devices[11].Name.split(":")[0]
+                        climate = pluginName + ": on" if (parsedStatus['climateactive'] == True) else pluginName + ": off"
+                        Level = parsedStatus['temperature']
+                        Devices[11].Update(nValue=0, sValue=str(Level), Name= climate)
+            except:
+                logging.debug("heartbeat wasnt set yet")
         return
 
     def onDisconnect(self, Connection):
@@ -331,12 +335,6 @@ def DumpConfigToLog():
     Domoticz.Debug("Device count: " + str(len(Devices)))
     for x in Devices:
         Domoticz.Debug("Device:           " + str(x) + " - " + str(Devices[x]))
-        # Domoticz.Debug("Device ID:       '" + str(Devices[x].ID) + "'")
-        # Domoticz.Debug("Device Name:     '" + Devices[x].Name + "'")
-        # Domoticz.Debug("Device nValue:    " + str(Devices[x].nValue))
-        # Domoticz.Debug("Device sValue:   '" + Devices[x].sValue + "'")
-        # Domoticz.Debug("Device LastLevel: " + str(Devices[x].LastLevel))
-        # Domoticz.Debug("Device Image:     " + str(Devices[x].Image))
     return
 
 

@@ -1,45 +1,39 @@
 import time
 import logging
 import pickle
-import requests
 import json
+import consolemenu
 from generic_lib import georeverse, geolookup
-from bluvo_main import initialise, pollcar
-from bluvo_lib import login, api_get_status, api_get_location, api_set_lock, api_set_hvac, api_set_charge, \
-    api_get_chargeschedule, api_set_chargelimits, api_set_navigation, api_get_services, api_get_userinfo,\
-    api_get_monthlyreport, api_get_monthlyreportlist
-
+from bluvo_main import BlueLink
 
 from params import *  # p_parameters are read
 
-global email, password, pin, vin, abrp_token, abrp_carmodel, WeatherApiKey, WeatherProvider, homelocation
-global forcedpolltimer, heartbeatinterval, charginginterval
-global ServiceId, BasicToken, ApplicationId, BaseHost, BaseURL
-global controlToken, controlTokenExpiresAt, accessToken, accessTokenExpiresAt, refreshToken
-global deviceId, vehicleId
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='bluvo.log',
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='bluvo_test.log',
                     level=logging.DEBUG)
 
 menuoptions = ["0 Lock", "1 Unlock", "2 Status", "3 Status formatted", "4 Status refresh", "5 location", "6 loop status",
                "7 Navigate to", '8 set Charge Limits', '9 get charge schedule', '10 get services', '11 exit']
-#mymenu = consolemenu.SelectionMenu(menuoptions)
-heartbeatinterval, initsuccess = initialise(p_email, p_password, p_pin, p_vin, p_abrp_token, p_abrp_carmodel, p_WeatherApiKey,
-                         p_WeatherProvider, p_homelocation, p_forcepollinterval, p_charginginterval,
-                         p_heartbeatinterval)
-if initsuccess:
+mymenu = consolemenu.SelectionMenu(menuoptions)
+# heartbeatinterval, initsuccess = initialise(p_email, p_password, p_pin, p_vin, p_abrp_token, p_abrp_carmodel, p_WeatherApiKey,
+                         # p_WeatherProvider, p_homelocation, p_forcepollinterval, p_charginginterval,
+                         # p_heartbeatinterval)
+
+bluelink = BlueLink(p_email, p_password, p_pin, p_vin, p_abrp_carmodel, p_abrp_token, p_WeatherApiKey, p_WeatherProvider, p_homelocation)
+bluelink.initialise(p_forcepollinterval, p_charginginterval)
+
+if bluelink.initSuccess:
     while True:
-        [print(i) for i in menuoptions]
+        #print(i) for i in menuoptions
         try:
             x = int(input("Please Select:"))
             print(x)
-            if x == 0: api_set_lock('on')
-            if x == 1: api_set_lock('off')
-            if x == 2: print(api_get_status(False))
-            if x == 3: print(api_get_status(False, False))
-            if x == 4: print(api_get_status(True))
+            if x == 0: bluelink.api_set_lock('on')
+            if x == 1: self.bluelink.api_set_lock('off')
+            if x == 2: print(self.bluelink.api_get_status(False))
+            if x == 3: print(self.bluelink.api_get_status(False, False))
+            if x == 4: print(self.bluelink.api_get_status(True))
             if x == 5:
-                locatie = api_get_location()
+                locatie = self.bluelink.api_get_location()
                 if locatie:
                     locatie = locatie['gpsDetail']['coord']
                     print(georeverse(locatie['lat'], locatie['lon']))
@@ -52,7 +46,7 @@ if initsuccess:
                     except:
                         manualForcePoll = False
                     print(manualForcePoll)
-                    updated, parsedStatus, afstand, googlelocation = pollcar(manualForcePoll)
+                    updated, parsedStatus, afstand, googlelocation = self.bluelink.pollcar(manualForcePoll)
                     # clear semaphore flag
                     manualForcePoll = False
                     with open('semaphore.pkl', 'wb') as f:
@@ -70,14 +64,14 @@ if initsuccess:
                         print("soc12v ", parsedStatus['charge12V'], "status 12V", parsedStatus['status12V'])
                         print("=============")
                     time.sleep(heartbeatinterval)
-            if x == 7: print(api_set_navigation(geolookup(input("Press Enter address to navigate to..."))))
+            if x == 7: print(self.bluelink.api_set_navigation(geolookup(input("Press Enter address to navigate to..."))))
             if x == 8:
                 invoer = input("Enter maximum for fast and slow charging (space or comma or semicolon or colon seperated)")
                 for delim in ',;:': invoer = invoer.replace(delim, ' ')
-                print(api_set_chargelimits(invoer.split()[0], invoer.split()[1]))
+                print(self.bluelink.api_set_chargelimits(invoer.split()[0], invoer.split()[1]))
 
-            if x == 9: print(json.dumps(api_get_chargeschedule(),indent=4))
-            if x == 10: print(api_get_services())
+            if x == 9: print(json.dumps(self.bluelink.api_get_chargeschedule(),indent=4))
+            if x == 10: print(self.bluelink.api_get_services())
             if x == 11: exit()
             input("Press Enter to continue...")
         except (ValueError) as err:
