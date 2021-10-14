@@ -23,17 +23,18 @@ bluelink.initialise(p_forcepollinterval, p_charginginterval)
 
 if bluelink.initSuccess:
     while True:
-        #print(i) for i in menuoptions
+        for i in menuoptions:
+            print(i) 
         try:
             x = int(input("Please Select:"))
             print(x)
-            if x == 0: bluelink.api_set_lock('on')
-            if x == 1: self.bluelink.api_set_lock('off')
-            if x == 2: print(self.bluelink.api_get_status(False))
-            if x == 3: print(self.bluelink.api_get_status(False, False))
-            if x == 4: print(self.bluelink.api_get_status(True))
+            if x == 0: bluelink.vehicle.api_set_lock('on')
+            if x == 1: bluelink.vehicle.api_set_lock('off')
+            if x == 2: print(bluelink.vehicle.api_get_status(False))
+            if x == 3: print(bluelink.vehicle.api_get_status(False, False))
+            if x == 4: print(bluelink.vehicle.api_get_status(True))
             if x == 5:
-                locatie = self.bluelink.api_get_location()
+                locatie = bluelink.vehicle.api_get_location()
                 if locatie:
                     locatie = locatie['gpsDetail']['coord']
                     print(georeverse(locatie['lat'], locatie['lon']))
@@ -46,7 +47,7 @@ if bluelink.initSuccess:
                     except:
                         manualForcePoll = False
                     print(manualForcePoll)
-                    updated, parsedStatus, afstand, googlelocation = self.bluelink.pollcar(manualForcePoll)
+                    updated, parsedStatus, afstand, googlelocation = bluelink.vehicle.pollcar(manualForcePoll)
                     # clear semaphore flag
                     manualForcePoll = False
                     with open('semaphore.pkl', 'wb') as f:
@@ -64,14 +65,14 @@ if bluelink.initSuccess:
                         print("soc12v ", parsedStatus['charge12V'], "status 12V", parsedStatus['status12V'])
                         print("=============")
                     time.sleep(heartbeatinterval)
-            if x == 7: print(self.bluelink.api_set_navigation(geolookup(input("Press Enter address to navigate to..."))))
+            if x == 7: print(bluelink.vehicle.api_set_navigation(geolookup(input("Press Enter address to navigate to..."))))
             if x == 8:
                 invoer = input("Enter maximum for fast and slow charging (space or comma or semicolon or colon seperated)")
                 for delim in ',;:': invoer = invoer.replace(delim, ' ')
-                print(self.bluelink.api_set_chargelimits(invoer.split()[0], invoer.split()[1]))
+                print(bluelink.vehicle.api_set_chargelimits(invoer.split()[0], invoer.split()[1]))
 
-            if x == 9: print(json.dumps(self.bluelink.api_get_chargeschedule(),indent=4))
-            if x == 10: print(self.bluelink.api_get_services())
+            if x == 9: print(json.dumps(bluelink.vehicle.api_get_chargeschedule(),indent=4))
+            if x == 10: print(bluelink.vehicle.api_get_services())
             if x == 11: exit()
             input("Press Enter to continue...")
         except (ValueError) as err:

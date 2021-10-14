@@ -4,6 +4,7 @@ import uuid
 import json
 import logging
 import pickle
+import random
 import urllib.parse as urlparse
 from urllib.parse import parse_qs
 from datetime import datetime, timedelta
@@ -18,10 +19,12 @@ class brandAuth():
         self.car_brand = car_brand
         self.ServiceId = ''
         self.BasicToken = ''
-        self.ApplicationId = ''
-        self.stamp = self.createStamp(self.car_brand)
+        self.CcspApplicationId = ''
+        #self.stamp = self.createStamp(self.car_brand)
+        self.stamp = self.getStampFromUrl(self.car_brand)
         self.BaseHost = 'prd.eu-ccapi.' + self.car_brand + '.com:8080'
         self.BaseURL = 'https://' + self.BaseHost
+        self.timeout = 10
         return
         
     def api_error(self, message):
@@ -30,23 +33,34 @@ class brandAuth():
         print(message)
 
     def createStamp(self, carbrand):
-        import random
         filename = carbrand+'list.txt'
         logging.info('CreateStamp: reading stamp from file: ' + filename)
         with open(carbrand+'list.txt') as f:
             lines = f.readlines()
         return random.choice(lines).rstrip("\n")
 
+    def getStampFromUrl(self, file, stampsFile = "https://raw.githubusercontent.com/neoPix/bluelinky-stamps/master/"):
+        # if (stampsFile.startsWith('file://')) :
+            # const [,path] = stampsFile.split('file://');
+            # const content = await promisify(readFile)(path);
+            # return JSON.parse(content.toString('utf-8'));
+        # }
+        url = stampsFile + file + ".json"
+        logging.info("getStampFromUrl: reading from URL: " + url)
+        body = requests.get(url)
+        return random.choice(body.json()).rstrip("\n");
+
+
     def get_constants(self):
         #global UserAgentPreLogon, UserAgent, ContentType, ContentJSON, AcceptLanguage, AcceptLanguageShort, AcceptEncoding, Connection, Accept, CcspApplicationId
         if self.car_brand == 'kia':
             self.ServiceId = 'fdc85c00-0a2f-4c64-bcb4-2cfb1500730a'
             self.BasicToken = 'Basic ZmRjODVjMDAtMGEyZi00YzY0LWJjYjQtMmNmYjE1MDA3MzBhOnNlY3JldA=='
-            self.ApplicationId = '693a33fa-c117-43f2-ae3b-61a02d24f417'
+            self.CcspApplicationId = '693a33fa-c117-43f2-ae3b-61a02d24f417'
         elif self.car_brand == 'hyundai':
             self.ServiceId = '6d477c38-3ca4-4cf3-9557-2a1929a94654'
             self.BasicToken = 'Basic NmQ0NzdjMzgtM2NhNC00Y2YzLTk1NTctMmExOTI5YTk0NjU0OktVeTQ5WHhQekxwTHVvSzB4aEJDNzdXNlZYaG10UVI5aVFobUlGampvWTRJcHhzVg=='
-            self.ApplicationId = '99cfff84-f4e2-4be8-a5ed-e5b755eb6581'
+            self.CcspApplicationId = '99cfff84-f4e2-4be8-a5ed-e5b755eb6581'
         else:
             self.api_error('Carbrand not OK.')
             return False
@@ -55,13 +69,15 @@ class brandAuth():
         self.UserAgent = 'UVO_REL/1.5.1 (iPhone; iOS 14.0.1; Scale/2.00)'
         self.UserAgent = 'UVO_Store/1.5.9 (iPhone; iOS 14.4; Scale/3.00)'
         self.Accept = '*/*'
-        self.CcspApplicationId = '8464b0bf-4932-47b0-90ed-555fef8f143b'
+        #self.CcspApplicationId = '99cfff84-f4e2-4be8-a5ed-e5b755eb6581'
         self.AcceptLanguageShort = 'nl-nl'
         self.AcceptLanguage = 'nl-NL;q=1, en-NL;q=0.9'
         self.AcceptEncoding = 'gzip, deflate, br'
         self.ContentType = 'application/x-www-form-urlencoded;charset=UTF-8'
         self.ContentJSON = 'application/json;charset=UTF-8'
         self.Connection = 'keep-alive'
+        #self.deviceId = 'fde6f2c9-8362-46c9-acef-bbe3720e5f2c'
+        self.deviceId = ''
         return True
 
 
@@ -69,7 +85,7 @@ class brandAuth():
         if self.refresh_access_token():
             logging.debug('accesstoken OK')
             if self.controlTokenExpiresAt is not None:
-                logging.debug('Check pin expiry on %s and now it is %s',controlTokenExpiresAt,datetime.now())
+                logging.debug('Check pin expiry on %s and now it is %s', self.controlTokenExpiresAt, datetime.now())
                 if self.controlToken is None or datetime.now() > self.controlTokenExpiresAt:
                     logging.debug('control token expired at %s, about to renew', self.controlTokenExpiresAt)
                     return self.enter_pin()
@@ -98,7 +114,7 @@ class brandAuth():
             logging.debug(headers)
             data = 'redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect&refresh_token=' + self.refreshToken + '&grant_type=refresh_token'
             # response = requests.post(url, data=data, headers=headers, throwHttpErrors=False)
-            response = requests.post(url, data=data, headers=headers, timeout=5)
+            response = requests.post(url, data=data, headers=headers, timeout=self.timeout)
             logging.debug('refreshed access token %s',response)
             logging.debug('response text %s',json.loads(response.text))
             if response.status_code == 200:
@@ -136,9 +152,8 @@ class brandAuth():
             'Stamp': self.stamp,
             'Authorization': self.accessToken
         }
-        data = {"deviceId": self.deviceId, "pin": pin}
-    #    response = requests.put(url, json=data, headers=headers)
-        response = requests.put(url, json=data, headers=headers, cookies=self.cookies, timeout=5)
+        data = {"deviceId": self.deviceId, "pin": self.pin}
+        response = requests.put(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -156,11 +171,11 @@ class brandAuth():
 
 
     def login_legacy(self, email, password, pin, vin):
-
+        self.pin = pin
         url = "no URL set yet"
         logging.info('entering login legacy, car brand:  %s, email: %s', self.car_brand, email)
         self.get_constants()
-        logging.debug('login legacy: constants ServiceId %s BasicToken %s ApplicationId %s BaseHost %s BaseURL %s stamp %s', self.ServiceId, self.BasicToken, self.ApplicationId, self.BaseHost, self.BaseURL, self.stamp)
+        logging.debug('login legacy: constants ServiceId %s BasicToken %s CcspApplicationId %s BaseHost %s BaseURL %s stamp %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.stamp)
         try:
             with open('session.pkl', 'rb') as f:
                 self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.stamp = pickle.load(f)
@@ -207,7 +222,7 @@ class brandAuth():
             logging.debug("login legacy data 2 "+str(data))
             url = self.BaseURL + '/api/v1/user/language'
             logging.debug("login legacy URL 2 "+url)
-            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=5)
+            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
             if response.status_code >= 300:
                 self.api_error('NOK login legacy: NOK set language for login. Error: ' + str(response.status_code) + response.text)
                 return False
@@ -226,7 +241,7 @@ class brandAuth():
             logging.debug("login URL 3 "+url)
             logging.debug("login headers 3 "+str(headers))
             logging.debug("login data 3 "+str(data))
-            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=5)
+            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
             if response.status_code != 200:
                 self.api_error('NOK login. Error: ' + str(response.status_code) + " " + response.text)
                 return False
@@ -260,7 +275,7 @@ class brandAuth():
             logging.debug("login URL 4 "+url)
             logging.debug("login headers 4 "+str(headers))
             logging.debug("login data 4 "+str(data))
-            response = requests.post(url, data=data, headers=headers, cookies=self.cookies, timeout=5)
+            response = requests.post(url, data=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
             if response.status_code != 200:
                 self.api_error('NOK token. Error: ' + str(response.status_code) + " " + response.text)
                 return False
@@ -275,29 +290,59 @@ class brandAuth():
                 return False
             # notification/register
 
+            # # --- step 5 get deviceid----------------------------------
+            url = self.BaseURL + '/api/v1/spa/notifications/register'
+            headers = {
+                'ccsp-service-id': self.ServiceId,
+                'cssp-application-id': self.CcspApplicationId,
+                'Content-Type': self.ContentJSON,
+                'Host': self.BaseHost,
+                'Connection': self.Connection,
+                'Accept-Encoding': self.AcceptEncoding,
+                'Stamp': self.stamp,
+                'User-Agent': self.UserAgent}
+            # what to do with the cookie? account=Nj<snip>>689c3 
+            # what to do with the right PushRegId
+            data = {"pushRegId": "0827a4e6c94faa094fe20033ff7fdbbd3a7a789727546f2645a0f547f5db2a58", "pushType": "APNS", "uuid": str(uuid.uuid1())}
+            logging.debug("login URL 5 "+url)
+            logging.debug("login headers 5 "+str(headers))
+            logging.debug("login data 5 "+str(data))
+            #response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
+            response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
+            if response.status_code != 200:
+                self.api_error('NOK login: NOK deviceID. Error: ' + str(response.status_code) + " " + response.text)
+                return False
+            try:
+                response = json.loads(response.text)
+                self.deviceId = response['resMsg']['deviceId']
+                logging.info("deviceId %s", self.deviceId)
+            except:
+                self.api_error('NOK login: Error in parsing /signing request: ' + response)
+                return False
+
             # user/profile    --> toevoegen bluelinky?
             # setting/language --> toevoegen bluelinky?
             # setting/service --> toevoegen bluelinky?
 
+
             # vehicles
 
-            # ---step 5 get vehicles----------------------------------
+            # ---step 6 get vehicles----------------------------------
             url = self.BaseURL + '/api/v1/spa/vehicles'
             headers = {
                 'Host': self.BaseHost,
                 'Accept': self.Accept,
                 'Authorization': self.accessToken,
                 'ccsp-application-id': self.CcspApplicationId,
-                'Accept-Language': self.AcceptLanguage,
-                'Accept-Encoding': self.AcceptEncoding,
+                'Accept-Encoding': 'gzip',
+                'User-Agent': 'okhttp/3.10.0',
                 'offset': '2',
-                'User-Agent': self.UserAgent,
                 'Connection': self.Connection,
                 'Content-Type': self.ContentJSON,
                 'Stamp': self.stamp,
                 'ccsp-device-id': self.deviceId
             }
-            response = requests.get(url, headers=headers, cookies=self.cookies, timeout=5)
+            response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
             logging.debug("login URL 6 "+url)
             logging.debug("login headers 6 "+str(headers))
             if response.status_code != 200:
@@ -335,7 +380,7 @@ class brandAuth():
                     }
                     logging.debug("login URL 7 "+url)
                     logging.debug("login headers 7 "+str(headers))
-                    response = requests.get(url, headers=headers, cookies=self.cookies, timeout=5)
+                    response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
                     try:
                         response = json.loads(response.text)
                         response = response['resMsg']['vinInfo'][0]['basic']
@@ -370,11 +415,11 @@ class brandAuth():
         return True
 
     def login_brand(self, email, password, pin, vin):
-
+        self.pin = pin
         url = "no URL set yet"
         logging.info('entering login, car brand:  %s, email: %s', self.car_brand, email)
         self.get_constants()
-        logging.debug('login: constants %s %s %s %s %s %s', self.ServiceId, self.BasicToken, self.ApplicationId, self.BaseHost, self.BaseURL, self.stamp)
+        logging.debug('login: constants %s %s %s %s %s %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.stamp)
         try:
             with open('session.pkl', 'rb') as f:
                 self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.stamp = pickle.load(f)
@@ -418,7 +463,7 @@ class brandAuth():
             logging.debug("login URL 2 "+url)
             logging.debug("login headers 2 "+str(headers))
             logging.debug("login data 2 "+str(data))
-            requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=5)
+            requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
 
             # ---get deviceid----------------------------------
             url = self.BaseURL + '/api/v1/spa/notifications/register'
@@ -439,7 +484,7 @@ class brandAuth():
             logging.debug("login URL 3 "+url)
             logging.debug("login headers 3 "+str(headers))
             logging.debug("login data 3 "+str(data))
-            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=5)
+            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
             if response.status_code != 200:
                 self.api_error('NOK login: NOK deviceID. Error: ' + str(response.status_code) + " " + response.text)
                 return False
@@ -473,7 +518,7 @@ class brandAuth():
             logging.debug("login URL 4 "+url)
             logging.debug("login headers 4 "+str(headers))
             logging.debug("login data 4 "+str(data))
-            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=5)
+            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
             if response.status_code != 200:
                 self.api_error('NOK login. Error: ' + str(response.status_code) + " " + response.text)
                 return False
@@ -504,7 +549,7 @@ class brandAuth():
             logging.debug("login URL 5 "+url)
             logging.debug("login headers 5 "+str(headers))
             logging.debug("login data 5 "+str(data))
-            response = requests.post(url, data=data, headers=headers, cookies=self.cookies, timeout=5)
+            response = requests.post(url, data=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
             if response.status_code != 200:
                 self.api_error('NOK token. Error: ' + str(response.status_code) + " " + response.text)
                 return False
@@ -541,7 +586,7 @@ class brandAuth():
                 'Stamp': self.stamp,
                 'ccsp-device-id': self.deviceId
             }
-            response = requests.get(url, headers=headers, cookies=self.cookies, timeout=5)
+            response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
             logging.debug("login URL 6 "+url)
             logging.debug("login headers 6 "+str(headers))
             if response.status_code != 200:
@@ -579,7 +624,7 @@ class brandAuth():
                     }
                     logging.debug("login URL 7 "+url)
                     logging.debug("login headers 7 "+str(headers))
-                    response = requests.get(url, headers=headers, cookies=self.cookies, timeout=5)
+                    response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
                     try:
                         response = json.loads(response.text)
                         response = response['resMsg']['vinInfo'][0]['basic']
@@ -640,7 +685,7 @@ class vehicleInteraction(brandAuth):
             'Stamp': self.stamp,
             'ccsp-device-id': self.deviceId
         }
-        response = requests.get(url, headers=headers, cookies=self.cookies, timeout=5)
+        response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -669,7 +714,7 @@ class vehicleInteraction(brandAuth):
             'Stamp': self.stamp,
             'ccsp-device-id': self.deviceId
         }
-        response = requests.get(url, headers=headers, cookies=self.cookies, timeout=5)
+        response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -698,7 +743,7 @@ class vehicleInteraction(brandAuth):
             'Stamp': self.stamp,
             'ccsp-device-id': self.deviceId
         }
-        response = requests.get(url, headers=headers, cookies=self.cookies, timeout=5)
+        response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -728,7 +773,7 @@ class vehicleInteraction(brandAuth):
             'ccsp-device-id': self.deviceId
         }
         data = {"action": "prewakeup", "deviceId": self.deviceId}
-        response = requests.post(url, json=data, headers=headers, timeout=5)
+        response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             return True
         else:
@@ -751,9 +796,9 @@ class vehicleInteraction(brandAuth):
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         try:
-            response = requests.get(url, headers=headers, timeout=5)
+            response = requests.get(url, headers=headers, timeout=self.timeout)
         except:
-            self.api_error("failed to get status")
+            self.api_error("failed to get status. Error: " + str(response.status_code) + response.text)
             return False
             
         logging.debug('got status')
@@ -784,7 +829,7 @@ class vehicleInteraction(brandAuth):
             'Stamp': self.stamp,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
-        response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -809,7 +854,7 @@ class vehicleInteraction(brandAuth):
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
 
-        response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -853,7 +898,7 @@ class vehicleInteraction(brandAuth):
         }
 
         data = {"deviceId": self.deviceId, "action": action}
-        response = requests.post(url, json=data, headers=headers, timeout=5)
+        response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             logging.debug("Send (un)lock command to Vehicle")
             return True
@@ -890,7 +935,7 @@ class vehicleInteraction(brandAuth):
         }
 
         data = {"deviceId": self.deviceId, "action": action}
-        response = requests.post(url, json=data, headers=headers, timeout=5)
+        response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             logging.debug("Send (stop) charge command to Vehicle")
             return True
@@ -945,7 +990,7 @@ class vehicleInteraction(brandAuth):
             "unit": 'C',
             "tempCode": tempcode
         }
-        response = requests.post(url, json=data, headers=headers, timeout=5)
+        response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             logging.debug("Send HVAC setting to Vehicle")
             return True
@@ -966,7 +1011,7 @@ class vehicleInteraction(brandAuth):
             'Stamp': self.stamp,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
-        response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -1055,7 +1100,7 @@ class vehicleInteraction(brandAuth):
                     'ccsp-device-id': self.deviceId
                 }
                 data['deviceId'] = self.deviceId
-                response = requests.post(url, json=data, headers=headers, timeout=5)
+                response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
                 if response.status_code == 200: return True
             except:
                 self.api_error('NOK setting charge schedule.')
@@ -1076,7 +1121,7 @@ class vehicleInteraction(brandAuth):
         }
         data = {'targetSOClist': [{'plugType': 0, 'targetSOClevel': int(limit_fast)},
                                   {'plugType': 1, 'targetSOClevel': int(limit_slow)}]}
-        response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=5)
+        response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
         if response.status_code == 200:
             return True
         else:
@@ -1096,7 +1141,7 @@ class vehicleInteraction(brandAuth):
         }
         data = poi_info_list
         poi_info_list['deviceID'] = self.deviceId
-        response = requests.post(url, json=poi_info_list, headers=headers, timeout=5)
+        response = requests.post(url, json=poi_info_list, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             return True
         else:
@@ -1116,7 +1161,7 @@ class vehicleInteraction(brandAuth):
             'Stamp': self.stamp,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
-        response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -1140,7 +1185,7 @@ class vehicleInteraction(brandAuth):
             'Stamp': self.stamp,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
-        response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -1181,7 +1226,7 @@ class vehicleInteraction(brandAuth):
         for service_on_off in servicesonoff:
             data['serviceCategorys'][i]['categoryName'] = i+1
             data['serviceCategorys'][i]['categoryStatus'] = service_on_off
-        response = requests.post(url, data=data, headers=headers, timeout=5)
+        response = requests.post(url, data=data, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -1206,7 +1251,7 @@ class vehicleInteraction(brandAuth):
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         data={'setRptMonth': "202006"}
-        response = requests.post(url, json=data, headers=headers, timeout=5)
+        response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
@@ -1230,7 +1275,7 @@ class vehicleInteraction(brandAuth):
             'Stamp': self.stamp,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
-        response = requests.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
