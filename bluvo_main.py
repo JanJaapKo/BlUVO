@@ -27,7 +27,7 @@ class BlueLink:
         self.vehicle = vehicleInteraction(self.car_brand)
         return
     
-    def process_data(self,carstatus, location, odometer):
+    def process_data(self, carstatus, location, odometer):
         # this procedure does a few things
         # generate pretty data == parsed status
         # calculate distance from home
@@ -36,48 +36,48 @@ class BlueLink:
         afstand = 0
         googlelocation = ""
         parsedstatus = {}
-        try:
-            parsedstatus = {
-                'hoodopen': carstatus['hoodOpen'],
-                'trunkopen': carstatus['trunkOpen'],
-                'locked': carstatus['doorLock'],
-                'dooropenFL': carstatus['doorOpen']['frontLeft'],
-                'dooropenFR': carstatus['doorOpen']['frontRight'],
-                'dooropenRL': carstatus['doorOpen']['backLeft'],
-                'dooropenRR': carstatus['doorOpen']['backRight'],
-                'dooropenANY': (carstatus['doorOpen']['frontLeft'] or carstatus['doorOpen']['backLeft'] or carstatus['doorOpen']['backRight'] or carstatus['doorOpen']['frontRight']),
-                'tirewarningFL': carstatus['tirePressureLamp']['tirePressureLampFL'],
-                'tirewarningFR': carstatus['tirePressureLamp']['tirePressureLampFR'],
-                'tirewarningRL': carstatus['tirePressureLamp']['tirePressureLampRL'],
-                'tirewarningRR': carstatus['tirePressureLamp']['tirePressureLampRR'],
-                'tirewarningall': carstatus['tirePressureLamp']['tirePressureLampAll'],
-                'climateactive': carstatus['airCtrlOn'],
-                'steerwheelheat': carstatus['steerWheelHeat'],
-                'rearwindowheat': carstatus['sideBackWindowHeat'],
-                'temperature': hex2temp(carstatus['airTemp']['value']),
-                'defrost': carstatus['defrost'],
-                'engine': carstatus['engine'],
-                'acc': carstatus['acc'],
-                'range': carstatus['evStatus']['drvDistance'][0]['rangeByFuel']['totalAvailableRange']['value'],
-                'charge12V': carstatus['battery']['batSoc'],
-                'status12V': carstatus['battery']['batState'],
-                'charging': carstatus['evStatus']['batteryCharge'],
-                'chargeHV': carstatus['evStatus']['batteryStatus'],
-                'pluggedin': carstatus['evStatus']['batteryPlugin'],
-                'heading': location['head'],
-                'speed': location['speed']['value'],
-                'loclat': location['coord']['lat'],
-                'loclon': location['coord']['lon'],
-                'odometer': odometer,
-                'time': carstatus['time'],
-                'chargingTime': carstatus['evStatus']['remainTime2']['atc'] ['value']
-            }
-            afstand = round(distance(parsedstatus['loclat'], parsedstatus['loclon'], float(self.homelat), float(self.homelon)), 1)
-            googlelocation = 'href="http://www.google.com/maps/search/?api=1&query=' + str(parsedstatus['loclat']) + ',' + str(
-                parsedstatus['loclon']) + '">'
-            self.abrp.send_abr_ptelemetry(parsedstatus['chargeHV'], parsedstatus['speed'], parsedstatus['loclat'], parsedstatus['loclon'], parsedstatus['charging'])
-        except:
-            logging.error("something went wrong in process data procedure")
+        #try:
+        parsedstatus = {
+            'hoodopen': carstatus['hoodOpen'],
+            'trunkopen': carstatus['trunkOpen'],
+            'locked': carstatus['doorLock'],
+            'dooropenFL': carstatus['doorOpen']['frontLeft'],
+            'dooropenFR': carstatus['doorOpen']['frontRight'],
+            'dooropenRL': carstatus['doorOpen']['backLeft'],
+            'dooropenRR': carstatus['doorOpen']['backRight'],
+            'dooropenANY': (carstatus['doorOpen']['frontLeft'] or carstatus['doorOpen']['backLeft'] or carstatus['doorOpen']['backRight'] or carstatus['doorOpen']['frontRight']),
+            'tirewarningFL': carstatus['tirePressureLamp']['tirePressureLampFL'],
+            'tirewarningFR': carstatus['tirePressureLamp']['tirePressureLampFR'],
+            'tirewarningRL': carstatus['tirePressureLamp']['tirePressureLampRL'],
+            'tirewarningRR': carstatus['tirePressureLamp']['tirePressureLampRR'],
+            'tirewarningall': carstatus['tirePressureLamp']['tirePressureLampAll'],
+            'climateactive': carstatus['airCtrlOn'],
+            'steerwheelheat': carstatus['steerWheelHeat'],
+            'rearwindowheat': carstatus['sideBackWindowHeat'],
+            'temperature': self.vehicle.hex2temp(carstatus['airTemp']['value']),
+            'defrost': carstatus['defrost'],
+            'engine': carstatus['engine'],
+            'acc': carstatus['acc'],
+            'range': carstatus['evStatus']['drvDistance'][0]['rangeByFuel']['totalAvailableRange']['value'],
+            'charge12V': carstatus['battery']['batSoc'],
+            'status12V': carstatus['battery']['batState'],
+            'charging': carstatus['evStatus']['batteryCharge'],
+            'chargeHV': carstatus['evStatus']['batteryStatus'],
+            'pluggedin': carstatus['evStatus']['batteryPlugin'],
+            'heading': location['head'],
+            'speed': location['speed']['value'],
+            'loclat': location['coord']['lat'],
+            'loclon': location['coord']['lon'],
+            'odometer': odometer,
+            'time': carstatus['time'],
+            'chargingTime': carstatus['evStatus']['remainTime2']['atc'] ['value']
+        }
+        afstand = round(distance(parsedstatus['loclat'], parsedstatus['loclon'], float(self.homelat), float(self.homelon)), 1)
+        googlelocation = 'href="http://www.google.com/maps/search/?api=1&query=' + str(parsedstatus['loclat']) + ',' + str(
+            parsedstatus['loclon']) + '">'
+        self.abrp.send_abr_ptelemetry(parsedstatus['chargeHV'], parsedstatus['speed'], parsedstatus['loclat'], parsedstatus['loclon'], parsedstatus['charging'])
+        # except:
+            # logging.error("something went wrong in process data procedure")
         return parsedstatus, afstand, googlelocation
 
 
@@ -119,80 +119,80 @@ class BlueLink:
         updated = False
         afstand = 0
         googlelocation = ''
-        try:
-            self.pollcounter += 1
-            carstatus = self.vehicle.api_get_status(False)
-            break_point = "got status"
-            if carstatus is not False:
-                logging.debug('carstatus in cache %s', carstatus)
-                odometer = carstatus['vehicleStatusInfo']['odometer']['value']
-                location = carstatus['vehicleStatusInfo']['vehicleLocation']
-                carstatus = carstatus['vehicleStatusInfo']['vehicleStatus']
-                # use the vehicle status to determine stuff and shorten script
-                if self.oldstatustime != carstatus['time']:
-                    logging.debug('new timestamp of cache data (was %s now %s), about to process it', self.oldstatustime, carstatus['time'])
-                    parsed_status, afstand, googlelocation = process_data(carstatus, location, odometer)
-                    self.oldstatustime = carstatus['time']
-                    updated = True
+        #try:
+        self.pollcounter += 1
+        carstatus = self.vehicle.api_get_status(False)
+        break_point = "got status"
+        if carstatus is not False:
+            logging.debug('carstatus in cache %s', carstatus)
+            odometer = carstatus['vehicleStatusInfo']['odometer']['value']
+            location = carstatus['vehicleStatusInfo']['vehicleLocation']
+            carstatus = carstatus['vehicleStatusInfo']['vehicleStatus']
+            # use the vehicle status to determine stuff and shorten script
+            if self.oldstatustime != carstatus['time']:
+                logging.debug('new timestamp of cache data (was %s now %s), about to process it', self.oldstatustime, carstatus['time'])
+                parsed_status, afstand, googlelocation = self.process_data(carstatus, location, odometer)
+                self.oldstatustime = carstatus['time']
+                updated = True
+            else:
+                logging.debug("self.oldstatustime == carstatus['time']")
+            try: sleepmodecheck = carstatus['sleepModeCheck']
+            except KeyError: sleepmodecheck = False  # sleep mode check is not there...
+            # at minimum every interval minutes a true poll
+            forcedpolltimer = False
+            if self.oldpolltime == '': 
+                forcedpolltimer = True  # first run
+            else:
+                if (float((datetime.now() - self.oldpolltime).total_seconds()) >= random.uniform(0.75, 1.5)*self.forcepollinterval): forcedpolltimer = True
                 else:
-                    logging.debug("self.oldstatustime == carstatus['time']")
-                try: sleepmodecheck = carstatus['sleepModeCheck']
-                except KeyError: sleepmodecheck = False  # sleep mode check is not there...
-                # at minimum every interval minutes a true poll
-                forcedpolltimer = False
-                if self.oldpolltime == '': 
-                    forcedpolltimer = True  # first run
-                else:
-                    if (float((datetime.now() - self.oldpolltime).total_seconds()) >= random.uniform(0.75, 1.5)*self.forcepollinterval): forcedpolltimer = True
-                    else:
-                        if carstatus['evStatus']['batteryCharge']:
-                            if (float((datetime.now() - self.oldpolltime).total_seconds()) >= random.uniform(0.75, 1.5)*self.charginginterval): forcedpolltimer = True
+                    if carstatus['evStatus']['batteryCharge']:
+                        if (float((datetime.now() - self.oldpolltime).total_seconds()) >= random.uniform(0.75, 1.5)*self.charginginterval): forcedpolltimer = True
 
-                break_point = "Before checking refresh conditions"
-                if sleepmodecheck or forcedpolltimer or manualForcePoll or carstatus['engine']:
-                    strings = ["sleepmodecheck", "forcedpolltimer", "manualForcePoll", "engine", 'charging']
-                    conditions = [sleepmodecheck, forcedpolltimer, manualForcePoll, carstatus['engine'], carstatus['evStatus']['batteryCharge']]
-                    truecond = ''
-                    for i in range(len(strings)):
-                        if conditions[i]: truecond += (" " + strings[i])
-                    logging.info("these conditions for a reload were true:%s", truecond)
+            break_point = "Before checking refresh conditions"
+            if sleepmodecheck or forcedpolltimer or manualForcePoll or carstatus['engine']:
+                strings = ["sleepmodecheck", "forcedpolltimer", "manualForcePoll", "engine", 'charging']
+                conditions = [sleepmodecheck, forcedpolltimer, manualForcePoll, carstatus['engine'], carstatus['evStatus']['batteryCharge']]
+                truecond = ''
+                for i in range(len(strings)):
+                    if conditions[i]: truecond += (" " + strings[i])
+                logging.info("these conditions for a reload were true:%s", truecond)
+                self.pollcounter += 1
+                carstatus = self.vehicle.api_get_status(True)
+
+                if carstatus is not False:
+                    logging.debug('information after refresh engine: %s; trunk: %s; doorunlock %s; charging %s',
+                                  carstatus['engine'], carstatus['trunkOpen'], not(carstatus['doorLock']), carstatus['evStatus']['batteryCharge'])
                     self.pollcounter += 1
-                    carstatus = api_get_status(True)
+                    carstatus = self.vehicle.api_get_status(False)
 
                     if carstatus is not False:
-                        logging.debug('information after refresh engine: %s; trunk: %s; doorunlock %s; charging %s',
-                                      carstatus['engine'], carstatus['trunkOpen'], not(carstatus['doorLock']), carstatus['evStatus']['batteryCharge'])
-                        self.pollcounter += 1
-                        carstatus = api_get_status(False)
 
-                        if carstatus is not False:
+                        freshodometer = carstatus['vehicleStatusInfo']['odometer']['value']
+                        carstatus = carstatus['vehicleStatusInfo']['vehicleStatus']
+                        logging.debug('information in cache ==> engine: %s; trunk: %s; doorunlock %s; charging %s; odometer %s',
+                                      carstatus['engine'], carstatus['trunkOpen'], not(carstatus['doorLock']), carstatus['evStatus']['batteryCharge'], freshodometer)
+                        # when car is moging (engine is running or odometer changed) ask for a location update
+                        logging.debug("odometer before refresh %s and after %s", odometer, freshodometer)
+                        if carstatus['engine'] or (freshodometer != odometer):
+                            self.pollcounter += 1
+                            freshlocation = api_get_location()
 
-                            freshodometer = carstatus['vehicleStatusInfo']['odometer']['value']
-                            carstatus = carstatus['vehicleStatusInfo']['vehicleStatus']
-                            logging.debug('information in cache ==> engine: %s; trunk: %s; doorunlock %s; charging %s; odometer %s',
-                                          carstatus['engine'], carstatus['trunkOpen'], not(carstatus['doorLock']), carstatus['evStatus']['batteryCharge'], freshodometer)
-                            # when car is moging (engine is running or odometer changed) ask for a location update
-                            logging.debug("odometer before refresh %s and after %s", odometer, freshodometer)
-                            if carstatus['engine'] or (freshodometer != odometer):
-                                self.pollcounter += 1
-                                freshlocation = api_get_location()
-
-                                if freshlocation is not False:
-                                    freshlocation = freshlocation['gpsDetail']
-                                    logging.debug('location before refresh %s and after %s', location['coord'], freshlocation['coord'])
-                                    location = freshlocation
-                            odometer = freshodometer
-                            self.oldpolltime = datetime.now()
-                            self.oldstatustime = carstatus['time']
-                            updated = True
-                            # logging.debug("entering worker with location %s and status %s", freshlocation, carstatus)
-                            parsed_status, afstand, googlelocation = self.process_data(carstatus, location, odometer)
-            else:
-                logging.debug("carstatus is False")
-        except:
-            self.oldpolltime = datetime.now()
-            logging.error('error in poll procedure, breakpoint: %s', break_point)
-            logging.error('carstatus: %s', carstatus)
+                            if freshlocation is not False:
+                                freshlocation = freshlocation['gpsDetail']
+                                logging.debug('location before refresh %s and after %s', location['coord'], freshlocation['coord'])
+                                location = freshlocation
+                        odometer = freshodometer
+                        self.oldpolltime = datetime.now()
+                        self.oldstatustime = carstatus['time']
+                        updated = True
+                        # logging.debug("entering worker with location %s and status %s", freshlocation, carstatus)
+                        parsed_status, afstand, googlelocation = self.process_data(carstatus, location, odometer)
+        else:
+            logging.debug("carstatus is False")
+        # except:
+            # self.oldpolltime = datetime.now()
+            # logging.error('error in poll procedure, breakpoint: %s', break_point)
+            # logging.error('carstatus: %s', carstatus)
         logging.debug('pollcount: %s', self.pollcounter)
         return updated, parsed_status, afstand, googlelocation
 

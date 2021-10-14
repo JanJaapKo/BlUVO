@@ -1,4 +1,3 @@
-import time
 from math import cos, asin, sqrt, pi
 import requests
 import json
@@ -71,25 +70,6 @@ def get_location_temperature(weather_api_key, weather_provider, lat, lon):
             return response['main']['temp']
         else: return False
     else: return False
-
-
-# def send_abr_ptelemetry(soc, speed, latitude, longitude, charging, abrp_carmodel, abrp_token, weather_api_key, weather_provider):
-    # # ABRP API information: https://documenter.getpostman.com/view/7396339/SWTK5a8w?version=latest
-    # # ABRP Telemetry API KEY - DO NOT CHANGE
-    # if abrp_token != "":
-        # abrp_apikey = '6f6a554f-d8c8-4c72-8914-d5895f58b1eb'
-        # data = {'utc': time.time(), 'soc': soc, 'speed': speed, 'is_charging': convert_if_bool(charging),
-                # 'car_model': abrp_carmodel}
-        # if latitude is not None:    data['lat'] = latitude
-        # if longitude is not None:   data['lon'] = longitude
-        # if weather_provider is not None and weather_api_key is not None and latitude is not None and longitude is not None:
-            # ext_temp = get_location_temperature(weather_api_key, weather_provider, latitude, longitude)
-            # if ext_temp is not False: data['ext_temp'] = ext_temp
-        # params = {'token': abrp_token, 'api_key': abrp_apikey, 'tlm': json.dumps(data, separators=(',', ':'))}
-        # response = requests.get('https://api.iternio.com/1/tlm/send?' + urlencode(params))
-        # if response.status_code == 200: return json.loads(response.text)
-        # else: return -1
-
 
 def distance(lat1, lon1, lat2, lon2):
     p = pi / 180

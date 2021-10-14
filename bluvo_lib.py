@@ -798,7 +798,7 @@ class vehicleInteraction(brandAuth):
         try:
             response = requests.get(url, headers=headers, timeout=self.timeout)
         except:
-            self.api_error("failed to get status. Error: " + str(response.status_code) + response.text)
+            self.api_error("failed to get status.")
             return False
             
         logging.debug('got status')

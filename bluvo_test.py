@@ -12,7 +12,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.DEBUG)
 
 menuoptions = ["0 Lock", "1 Unlock", "2 Status", "3 Status formatted", "4 Status refresh", "5 location", "6 loop status",
-               "7 Navigate to", '8 set Charge Limits', '9 get charge schedule', '10 get services', '11 exit']
+               "7 Navigate to", '8 set Charge Limits', '9 get charge schedule', '10 get services', '11 poll car', '12 exit']
 mymenu = consolemenu.SelectionMenu(menuoptions)
 # heartbeatinterval, initsuccess = initialise(p_email, p_password, p_pin, p_vin, p_abrp_token, p_abrp_carmodel, p_WeatherApiKey,
                          # p_WeatherProvider, p_homelocation, p_forcepollinterval, p_charginginterval,
@@ -73,7 +73,8 @@ if bluelink.initSuccess:
 
             if x == 9: print(json.dumps(bluelink.vehicle.api_get_chargeschedule(),indent=4))
             if x == 10: print(bluelink.vehicle.api_get_services())
-            if x == 11: exit()
+            if x == 11: bluelink.pollcar(True)
+            if x == 12: exit()
             input("Press Enter to continue...")
         except (ValueError) as err:
             print("error in menu keuze")
