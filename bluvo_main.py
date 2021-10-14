@@ -1,24 +1,42 @@
 from datetime import datetime
-from bluvo_lib import hex2temp, temp2hex, login, api_get_status, api_get_location, api_set_lock, api_set_hvac, api_set_charge
-from generic_lib import send_abr_ptelemetry, distance
+from bluvo_lib import vehicleInteraction
+from generic_lib import distance
 import logging
 import random
+from abrp import ABRP
 # todo make object oriented
-global email, password, pin, vin, abrp_token, abrp_carmodel, WeatherApiKey, WeatherProvider, homelocation, forcepollinterval, charginginterval
-global oldstatustime, oldpolltime
-global pollcounter
 
-
-def process_data(carstatus, location, odometer):
-    # this procedure does a few things
-    # generate pretty data == parsed status
-    # calculate distance from home
-    # create a Google Maps link for location
-    # send data to ABRP
-    afstand = 0
-    googlelocation = ""
-    parsedstatus = {}
-    try:
+class BlueLink:
+    pollcounter = 0
+    oldstatustime = ""
+    oldpolltime = ""
+    forcepollinterval = 0
+    charginginterval = 0
+    def __init__(self, email, password, pin, vin, abrp_carmodel, abrp_token, weather_api_key, weather_provider, homelocation):
+        self.email = email
+        self.password = password
+        self.pin = pin
+        self.vin = vin
+        self.initSuccess = False
+        loc = homelocation.split(";")
+        self.homelat = float(loc[0])
+        self.homelon = float(loc[1])
+        self.abrp_carmodel = abrp_carmodel
+        self.car_brand = (self.abrp_carmodel.split(":", 1)[0])
+        self.abrp = ABRP(self.abrp_carmodel, abrp_token, weather_api_key, weather_provider)
+        self.vehicle = vehicleInteraction(self.car_brand)
+        return
+    
+    def process_data(self, carstatus, location, odometer):
+        # this procedure does a few things
+        # generate pretty data == parsed status
+        # calculate distance from home
+        # create a Google Maps link for location
+        # send data to ABRP
+        afstand = 0
+        googlelocation = ""
+        parsedstatus = {}
+        #try:
         parsedstatus = {
             'hoodopen': carstatus['hoodOpen'],
             'trunkopen': carstatus['trunkOpen'],
@@ -36,7 +54,7 @@ def process_data(carstatus, location, odometer):
             'climateactive': carstatus['airCtrlOn'],
             'steerwheelheat': carstatus['steerWheelHeat'],
             'rearwindowheat': carstatus['sideBackWindowHeat'],
-            'temperature': hex2temp(carstatus['airTemp']['value']),
+            'temperature': self.vehicle.hex2temp(carstatus['airTemp']['value']),
             'defrost': carstatus['defrost'],
             'engine': carstatus['engine'],
             'acc': carstatus['acc'],
@@ -54,74 +72,56 @@ def process_data(carstatus, location, odometer):
             'time': carstatus['time'],
             'chargingTime': carstatus['evStatus']['remainTime2']['atc'] ['value']
         }
-        loc = homelocation.split(";")
-        homelat = float(loc[0])
-        homelon = float(loc[1])
-        afstand = round(distance(parsedstatus['loclat'], parsedstatus['loclon'], float(homelat), float(homelon)), 1)
+        afstand = round(distance(parsedstatus['loclat'], parsedstatus['loclon'], float(self.homelat), float(self.homelon)), 1)
         googlelocation = 'href="http://www.google.com/maps/search/?api=1&query=' + str(parsedstatus['loclat']) + ',' + str(
             parsedstatus['loclon']) + '">'
-        send_abr_ptelemetry(parsedstatus['chargeHV'], parsedstatus['speed'], parsedstatus['loclat'], parsedstatus['loclon'], parsedstatus['charging'],
-                            abrp_carmodel, abrp_token, WeatherApiKey, WeatherProvider)
-    except:
-        logging.error("something went wrong in process data procedure")
-    return parsedstatus, afstand, googlelocation
+        self.abrp.send_abr_ptelemetry(parsedstatus['chargeHV'], parsedstatus['speed'], parsedstatus['loclat'], parsedstatus['loclon'], parsedstatus['charging'])
+        # except:
+            # logging.error("something went wrong in process data procedure")
+        return parsedstatus, afstand, googlelocation
 
 
-def initialise(p_email, p_password, p_pin, p_vin, p_abrp_token, p_abrp_carmodel, p_weather_api_key, p_weather_provider,
-               p_homelocation, p_forcepollinterval, p_charginginterval, p_heartbeatinterval):
-    global email, password, pin, vin, abrp_token, abrp_carmodel, WeatherApiKey, WeatherProvider, homelocation, forcepollinterval, charginginterval
-    global pollcounter
-    # heartbeatinterval
-    # p_parameters are fed into global variables
-    logging.debug("into Initialise")
-    email = p_email
-    password = p_password
-    vin = p_vin
-    pin = ('0000' + (str(p_pin) if isinstance(p_pin, int) else p_pin))[-4:]
-    abrp_token = p_abrp_token
-    abrp_carmodel = p_abrp_carmodel
-    WeatherApiKey = p_weather_api_key
-    WeatherProvider = p_weather_provider
-    homelocation = p_homelocation
-    if p_forcepollinterval == "":
-        forcepollinterval = float(60*60)
-    else:
-        forcepollinterval = float(p_forcepollinterval)*60
-    if p_charginginterval == "":
-        charginginterval = float(forcepollinterval) / 4
-    else:
-        charginginterval = float(p_charginginterval) * 60
-    if p_heartbeatinterval == "":
-        heartbeatinterval = float(120)
-    else:
-        heartbeatinterval = float(p_heartbeatinterval) * 60
-    logging.debug("forcedpoll: %s, charging: %s, heartbeat %s", forcepollinterval, charginginterval, heartbeatinterval)
-    global oldstatustime, oldpolltime
-    oldstatustime = ""
-    oldpolltime = ""
-    car_brand = (abrp_carmodel.split(":", 1)[0])
-    pollcounter = 7
-    return heartbeatinterval, login(car_brand, email, password, pin, vin)
+    def initialise(self, p_forcepollinterval, p_charginginterval):
+        # heartbeatinterval
+        # p_parameters are fed into global variables
+        logging.debug("into Initialise")
+        if p_forcepollinterval == "":
+            self.forcepollinterval = float(60*60)
+        else:
+            self.forcepollinterval = float(p_forcepollinterval)*60
+        if p_charginginterval == "":
+            self.charginginterval = float(self.forcepollinterval) / 4
+        else:
+            self.charginginterval = float(p_charginginterval) * 60
+        logging.debug("forcedpoll: %s, charging: %s", self.forcepollinterval, self.charginginterval)
+        self.oldstatustime = ""
+        self.oldpolltime = ""
+        self.pollcounter = 7
+        logging.debug("trying to login")
+        self.initSuccess = self.vehicle.login_legacy(self.email, self.password, self.pin, self.vin)
+        logging.debug("login result: " + str(self.initSuccess))
+        return 
 
 
-def pollcar(manualForcePoll):
-    # get statusses from car; either cache or refreshed
-    # return as [updated,[carstatus],[odometer],[location]]
-    # return False if it fails (behaves as if info did not change)
-    global oldstatustime, oldpolltime, forcepollinterval, charginginterval, pollcounter
-    # reset pollcounter at start of day
-    break_point = "start poll procedure"  # breakpoint
-    carstatus = "empty car status"
-    if oldpolltime == "": pollcounter = 0
-    else:
-        if oldpolltime.date() != datetime.now().date(): pollcounter = 0
-    parsed_status = {}
-    updated = False
-    afstand = 0
-    googlelocation = ''
-    try:
-        pollcounter += 1
-        carstatus = api_get_status(False)
+    def pollcar(self, manualForcePoll):
+        # get statusses from car; either cache or refreshed
+        # return as [updated,[carstatus],[odometer],[location]]
+        # return False if it fails (behaves as if info did not change)
+        # reset pollcounter at start of day
+        break_point = "start poll procedure"  # breakpoint
+        carstatus = "empty car status"
+        if self.oldpolltime == "": 
+            self.pollcounter = 0
+        else:
+            if self.oldpolltime.date() != datetime.now().date(): 
+                self.pollcounter = 0
+        parsed_status = {}
+        updated = False
+        afstand = 0
+        googlelocation = ''
+        #try:
+        self.pollcounter += 1
+        carstatus = self.vehicle.api_get_status(False)
         break_point = "got status"
         if carstatus is not False:
             logging.debug('carstatus in cache %s', carstatus)
@@ -129,23 +129,24 @@ def pollcar(manualForcePoll):
             location = carstatus['vehicleStatusInfo']['vehicleLocation']
             carstatus = carstatus['vehicleStatusInfo']['vehicleStatus']
             # use the vehicle status to determine stuff and shorten script
-            if oldstatustime != carstatus['time']:
-                logging.debug('new timestamp of cache data (was %s now %s), about to process it', oldstatustime, carstatus['time'])
-                parsed_status, afstand, googlelocation = process_data(carstatus, location, odometer)
-                oldstatustime = carstatus['time']
+            if self.oldstatustime != carstatus['time']:
+                logging.debug('new timestamp of cache data (was %s now %s), about to process it', self.oldstatustime, carstatus['time'])
+                parsed_status, afstand, googlelocation = self.process_data(carstatus, location, odometer)
+                self.oldstatustime = carstatus['time']
                 updated = True
             else:
-                logging.debug("oldstatustime == carstatus['time']")
+                logging.debug("self.oldstatustime == carstatus['time']")
             try: sleepmodecheck = carstatus['sleepModeCheck']
             except KeyError: sleepmodecheck = False  # sleep mode check is not there...
             # at minimum every interval minutes a true poll
             forcedpolltimer = False
-            if oldpolltime == '': forcedpolltimer = True  # first run
+            if self.oldpolltime == '': 
+                forcedpolltimer = True  # first run
             else:
-                if (float((datetime.now() - oldpolltime).total_seconds()) >= random.uniform(0.75, 1.5)*forcepollinterval): forcedpolltimer = True
+                if (float((datetime.now() - self.oldpolltime).total_seconds()) >= random.uniform(0.75, 1.5)*self.forcepollinterval): forcedpolltimer = True
                 else:
                     if carstatus['evStatus']['batteryCharge']:
-                        if (float((datetime.now() - oldpolltime).total_seconds()) >= random.uniform(0.75, 1.5)*charginginterval): forcedpolltimer = True
+                        if (float((datetime.now() - self.oldpolltime).total_seconds()) >= random.uniform(0.75, 1.5)*self.charginginterval): forcedpolltimer = True
 
             break_point = "Before checking refresh conditions"
             if sleepmodecheck or forcedpolltimer or manualForcePoll or carstatus['engine']:
@@ -155,14 +156,14 @@ def pollcar(manualForcePoll):
                 for i in range(len(strings)):
                     if conditions[i]: truecond += (" " + strings[i])
                 logging.info("these conditions for a reload were true:%s", truecond)
-                pollcounter += 1
-                carstatus = api_get_status(True)
+                self.pollcounter += 1
+                carstatus = self.vehicle.api_get_status(True)
 
                 if carstatus is not False:
                     logging.debug('information after refresh engine: %s; trunk: %s; doorunlock %s; charging %s',
                                   carstatus['engine'], carstatus['trunkOpen'], not(carstatus['doorLock']), carstatus['evStatus']['batteryCharge'])
-                    pollcounter += 1
-                    carstatus = api_get_status(False)
+                    self.pollcounter += 1
+                    carstatus = self.vehicle.api_get_status(False)
 
                     if carstatus is not False:
 
@@ -173,7 +174,7 @@ def pollcar(manualForcePoll):
                         # when car is moging (engine is running or odometer changed) ask for a location update
                         logging.debug("odometer before refresh %s and after %s", odometer, freshodometer)
                         if carstatus['engine'] or (freshodometer != odometer):
-                            pollcounter += 1
+                            self.pollcounter += 1
                             freshlocation = api_get_location()
 
                             if freshlocation is not False:
@@ -181,28 +182,28 @@ def pollcar(manualForcePoll):
                                 logging.debug('location before refresh %s and after %s', location['coord'], freshlocation['coord'])
                                 location = freshlocation
                         odometer = freshodometer
-                        oldpolltime = datetime.now()
-                        oldstatustime = carstatus['time']
+                        self.oldpolltime = datetime.now()
+                        self.oldstatustime = carstatus['time']
                         updated = True
                         # logging.debug("entering worker with location %s and status %s", freshlocation, carstatus)
-                        parsed_status, afstand, googlelocation = process_data(carstatus, location, odometer)
+                        parsed_status, afstand, googlelocation = self.process_data(carstatus, location, odometer)
         else:
             logging.debug("carstatus is False")
-    except:
-        oldpolltime = datetime.now()
-        logging.error('error in poll procedure, breakpoint: %s', break_point)
-        logging.error('carstatus: %s', carstatus)
-    logging.debug('pollcount: %s', pollcounter)
-    return updated, parsed_status, afstand, googlelocation
+        # except:
+            # self.oldpolltime = datetime.now()
+            # logging.error('error in poll procedure, breakpoint: %s', break_point)
+            # logging.error('carstatus: %s', carstatus)
+        logging.debug('pollcount: %s', self.pollcounter)
+        return updated, parsed_status, afstand, googlelocation
 
 
-def setcharge(command):
-    return api_set_charge(command)
+    def setcharge(self, command):
+        return api_set_charge(command)
 
 
-def lockdoors(command):
-    return api_set_lock(command)
+    def lockdoors(self, command):
+        return api_set_lock(command)
 
 
-def setairco(action, temp):
-    return api_set_hvac(action, temp, False, False)
+    def setairco(self, action, temp):
+        return api_set_hvac(action, temp, False, False)
