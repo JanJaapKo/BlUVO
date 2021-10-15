@@ -214,8 +214,8 @@ class BasePlugin:
 
     def onHeartbeat(self):
         if self.bluelink.initSuccess == False:
-            #Domoticz.Log("heartbeat skipped because initialisation failed")
-            logging.debug("heartbeat skipped because initialisation failed")
+            logging.debug("heartbeat skipped because initialisation failed. Retry to initialise")
+            self.bluelink.initialise(p_forcepollinterval, p_charginginterval)
         else:
             try:
                 manualForcePoll = (Devices[9].nValue == 1)

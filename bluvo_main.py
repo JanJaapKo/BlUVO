@@ -3,8 +3,10 @@ from bluvo_lib import vehicleInteraction
 from generic_lib import distance, hex2temp
 import logging
 import random
+import time
 from abrp import ABRP
-# todo make object oriented
+from tools.stamps import postOffice
+from exceptions import * 
 
 class BlueLink:
     pollcounter = 0
@@ -24,6 +26,7 @@ class BlueLink:
         self.abrp_carmodel = abrp_carmodel
         self.car_brand = (self.abrp_carmodel.split(":", 1)[0])
         self.abrp = ABRP(self.abrp_carmodel, abrp_token, weather_api_key, weather_provider)
+        self.stampProvider = postOffice(self.car_brand, False)
         self.vehicle = vehicleInteraction(self.car_brand)
         return
     
@@ -98,7 +101,19 @@ class BlueLink:
         self.oldpolltime = ""
         self.pollcounter = 7
         logging.debug("trying to login")
-        self.initSuccess = self.vehicle.login_legacy(self.email, self.password, self.pin, self.vin)
+        self.vehicle.stamp = self.stampProvider.getStamp()
+        for i in range(1, 4):
+            try:
+                self.initSuccess = self.vehicle.login_legacy(self.email, self.password, self.pin, self.vin)
+                if self.initSuccess:
+                    logging.debug("login result: " + str(self.initSuccess))
+                    return
+            except StampInvalid:
+                self.vehicle.stamp = self.stampProvider.getStamp()
+            time.sleep(i ** 3)
+            #current stamp set apparantly not valid anymore, set set to invalid to trigger fetching a new set
+            self.stampProvider.stampValid = False
+        
         logging.debug("login result: " + str(self.initSuccess))
         return 
 

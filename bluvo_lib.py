@@ -6,11 +6,11 @@ import logging
 import pickle
 import random
 import urllib.parse as urlparse
+from exceptions import * 
 from urllib.parse import parse_qs
 from datetime import datetime, timedelta
 from time import time
 from generic_lib import temp2hex
-from tools.stamps import postOffice
 
 class brandAuth():
     accessToken = None
@@ -22,41 +22,25 @@ class brandAuth():
         self.ServiceId = ''
         self.BasicToken = ''
         self.CcspApplicationId = ''
-        #self.stamp = self.createStamp(self.car_brand)
-        #self.stamp = self.getStampFromUrl(self.car_brand)
-        self.stamp = None
+        self.__stamp__ = ''
         self.BaseHost = 'prd.eu-ccapi.' + self.car_brand + '.com:8080'
         self.BaseURL = 'https://' + self.BaseHost
         self.timeout = 10
-        self.stampProvider = postOffice(self.car_brand, False)
         return
+    
+    @property
+    def stamp(self):
+        return self.__stamp__
+    @stamp.setter
+    def stamp(self, stamp):
+        self.__stamp__ = stamp
         
     def api_error(self, message):
         logger = logging.getLogger('root')
         logger.error(message)
         print(message)
 
-    # def createStamp(self, carbrand):
-        # filename = carbrand+'list.txt'
-        # logging.info('CreateStamp: reading stamp from file: ' + filename)
-        # with open(carbrand+'list.txt') as f:
-            # lines = f.readlines()
-        # return random.choice(lines).rstrip("\n")
-
-    # def getStampFromUrl(self, file, stampsFile = "https://raw.githubusercontent.com/neoPix/bluelinky-stamps/master/"):
-        # # if (stampsFile.startsWith('file://')) :
-            # # const [,path] = stampsFile.split('file://');
-            # # const content = await promisify(readFile)(path);
-            # # return JSON.parse(content.toString('utf-8'));
-        # # }
-        # url = stampsFile + file + ".json"
-        # logging.info("getStampFromUrl: reading from URL: " + url)
-        # body = requests.get(url)
-        # return random.choice(body.json()).rstrip("\n");
-
-
     def get_constants(self):
-        #global UserAgentPreLogon, UserAgent, ContentType, ContentJSON, AcceptLanguage, AcceptLanguageShort, AcceptEncoding, Connection, Accept, CcspApplicationId
         if self.car_brand == 'kia':
             self.ServiceId = 'fdc85c00-0a2f-4c64-bcb4-2cfb1500730a'
             self.BasicToken = 'Basic ZmRjODVjMDAtMGEyZi00YzY0LWJjYjQtMmNmYjE1MDA3MzBhOnNlY3JldA=='
@@ -73,17 +57,14 @@ class brandAuth():
         self.UserAgent = 'UVO_REL/1.5.1 (iPhone; iOS 14.0.1; Scale/2.00)'
         self.UserAgent = 'UVO_Store/1.5.9 (iPhone; iOS 14.4; Scale/3.00)'
         self.Accept = '*/*'
-        #self.CcspApplicationId = '99cfff84-f4e2-4be8-a5ed-e5b755eb6581'
         self.AcceptLanguageShort = 'nl-nl'
         self.AcceptLanguage = 'nl-NL;q=1, en-NL;q=0.9'
         self.AcceptEncoding = 'gzip, deflate, br'
         self.ContentType = 'application/x-www-form-urlencoded;charset=UTF-8'
         self.ContentJSON = 'application/json;charset=UTF-8'
         self.Connection = 'keep-alive'
-        #self.deviceId = 'fde6f2c9-8362-46c9-acef-bbe3720e5f2c'
         self.deviceId = ''
         return True
-
 
     def check_control_token(self):
         if self.refresh_access_token():
@@ -94,7 +75,6 @@ class brandAuth():
                     logging.debug('control token expired at %s, about to renew', self.controlTokenExpiresAt)
                     return self.enter_pin()
         return True
-
 
     def refresh_access_token(self):
         if self.refreshToken is None:
@@ -112,7 +92,7 @@ class brandAuth():
                 'Accept': self.Accept,
                 'User-Agent': self.UserAgent,
                 'Accept-Language': self.AcceptLanguage,
-                'Stamp': self.stamp,
+                'Stamp': self.__stamp__,
                 'Authorization': BasicToken
                 }
             logging.debug(headers)
@@ -131,7 +111,7 @@ class brandAuth():
                     with open('session.pkl', 'wb') as f:
                         pickle.dump(
                             [self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId,
-                             self.vehicleId, self.cookies, self.stamp], f)
+                             self.vehicleId, self.cookies, self.__stamp__], f)
 
                     return True
                 except:
@@ -141,7 +121,6 @@ class brandAuth():
                 self.api_error('Refresh token failed: ' + str(response.status_code) + response.text)
                 return False
         return True
-
 
     def enter_pin(self):
         url = self.BaseURL + '/api/v1/user/pin'
@@ -153,7 +132,7 @@ class brandAuth():
             'Accept': self.Accept,
             'User-Agent': self.UserAgent,
             'Accept-Language': self.AcceptLanguage,
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'Authorization': self.accessToken
         }
         data = {"deviceId": self.deviceId, "pin": self.pin}
@@ -173,17 +152,15 @@ class brandAuth():
             self.api_error('NOK pin. Error: ' + str(response.status_code) + response.text)
             return False
 
-
     def login_legacy(self, email, password, pin, vin):
         self.pin = pin
-        self.stamp = self.stampProvider.getStamp()
         url = "no URL set yet"
         logging.info('entering login legacy, car brand:  %s, email: %s', self.car_brand, email)
         self.get_constants()
-        logging.debug('login legacy: constants ServiceId %s BasicToken %s CcspApplicationId %s BaseHost %s BaseURL %s stamp %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.stamp)
+        logging.debug('login legacy: constants ServiceId %s BasicToken %s CcspApplicationId %s BaseHost %s BaseURL %s stamp %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.__stamp__)
         try:
             with open('session.pkl', 'rb') as f:
-                self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.stamp = pickle.load(f)
+                self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.__stamp__ = pickle.load(f)
                 logging.info('login  legacy: session read %s',self.accessTokenExpiresAt)
         except:
             logging.info('session not read from file, full login legacy')
@@ -192,7 +169,6 @@ class brandAuth():
 
             #try:
             # ---step 1 cookies----------------------------------
-            #url = self.BaseURL + '/api/v1/user/oauth2/authorize?response_type=code&client_id=' + self.ServiceId + '&redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect&state=test&lang=en'
             url = self.BaseURL + '/api/v1/user/oauth2/authorize?response_type=code&state=test&client_id=' + self.ServiceId + '&redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect'
             headers = {
                 'Connection': self.Connection,
@@ -272,7 +248,7 @@ class brandAuth():
                 'User-Agent': self.UserAgent,
                 'Accept-Language': self.AcceptLanguage,
                 'ccsp-application-id': self.CcspApplicationId,
-                'Stamp': self.stamp,
+                'Stamp': self.__stamp__,
                 'Authorization': self.BasicToken
             }
 
@@ -304,7 +280,7 @@ class brandAuth():
                 'Host': self.BaseHost,
                 'Connection': self.Connection,
                 'Accept-Encoding': self.AcceptEncoding,
-                'Stamp': self.stamp,
+                'Stamp': self.__stamp__,
                 'User-Agent': self.UserAgent}
             # what to do with the cookie? account=Nj<snip>>689c3 
             # what to do with the right PushRegId
@@ -312,11 +288,15 @@ class brandAuth():
             logging.debug("login URL 5 "+url)
             logging.debug("login headers 5 "+str(headers))
             logging.debug("login data 5 "+str(data))
-            #response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
             response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
             if response.status_code != 200:
                 self.api_error('NOK login: NOK deviceID. Error: ' + str(response.status_code) + " " + response.text)
+                logging.debug('the rescode = ' + response.json()["resCode"])
+                if response.json()["resCode"] == "4017":
+                    raise StampInvalid
                 return False
+            else:
+                logging.debug('OK login: OK deviceID, message: ' + str(response.status_code) + " " + response.text)
             try:
                 response = json.loads(response.text)
                 self.deviceId = response['resMsg']['deviceId']
@@ -344,7 +324,7 @@ class brandAuth():
                 'offset': '2',
                 'Connection': self.Connection,
                 'Content-Type': self.ContentJSON,
-                'Stamp': self.stamp,
+                'Stamp': self.__stamp__,
                 'ccsp-device-id': self.deviceId
             }
             response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
@@ -380,7 +360,7 @@ class brandAuth():
                         'User-Agent': self.UserAgent,
                         'Connection': self.Connection,
                         'Content-Type': self.ContentJSON,
-                        'Stamp': self.stamp,
+                        'Stamp': self.__stamp__,
                         'ccsp-device-id': self.deviceId
                     }
                     logging.debug("login URL 7 "+url)
@@ -401,7 +381,7 @@ class brandAuth():
             else: self.vehicleId = vehicles[0]['vehicleId']
             logging.info("vehicleID %s", self.vehicleId)
             with open('session.pkl', 'wb') as f:
-                pickle.dump([self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.stamp],f)
+                pickle.dump([self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.__stamp__],f)
             # except:
                 # self.api_error('Login failed. URL: "'+ url + '", response: "' + response.text)
                 # return False
@@ -416,19 +396,19 @@ class brandAuth():
             # self.api_set_wakeup()
             # api_get_valetmode()
             # api_get_finaldestination()
-            logging.debug("Finished successfull login procedure")
+            logging.info("Finished successfull login procedure")
         return True
 
     def login_brand(self, email, password, pin, vin):
         self.pin = pin
-        self.stamp = self.stampProvider.getStamp()
+        #self.__stamp__ = self.stampProvider.getStamp()
         url = "no URL set yet"
         logging.info('entering login, car brand:  %s, email: %s', self.car_brand, email)
         self.get_constants()
-        logging.debug('login: constants %s %s %s %s %s %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.stamp)
+        logging.debug('login: constants %s %s %s %s %s %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.__stamp__)
         try:
             with open('session.pkl', 'rb') as f:
-                self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.stamp = pickle.load(f)
+                self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.__stamp__ = pickle.load(f)
                 logging.info('login: session read %s',self.accessTokenExpiresAt)
         except:
             logging.info('session not read from file, full login')
@@ -482,7 +462,7 @@ class brandAuth():
                 'Accept': self.Accept,
                 'Accept-Encoding': self.AcceptEncoding,
                 'Accept-Language': self.AcceptLanguage,
-                'Stamp': self.stamp,
+                'Stamp': self.__stamp__,
                 'User-Agent': self.UserAgent}
             # what to do with the cookie? account=Nj<snip>>689c3
             # what to do with the right PushRegId
@@ -517,7 +497,7 @@ class brandAuth():
                 'User-Agent': self.UserAgentPreLogon,
                 'Referer': self.BaseURL+'/web/v1/user/signin',
                 'Accept-Language': self.AcceptLanguageShort,
-                'Stamp': self.stamp,
+                'Stamp': self.__stamp__,
                 'Accept-Encoding': self.AcceptEncoding
             }
             data = {"email": email, "password": password}
@@ -548,7 +528,7 @@ class brandAuth():
                 'Accept': self.Accept,
                 'User-Agent': self.UserAgent,
                 'Accept-Language': self.AcceptLanguage,
-                'Stamp': self.stamp,
+                'Stamp': self.__stamp__,
                 'Authorization': self.BasicToken
             }
             data = 'redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect&code=' + authcode + '&grant_type=authorization_code'
@@ -589,7 +569,7 @@ class brandAuth():
                 'User-Agent': self.UserAgent,
                 'Connection': self.Connection,
                 'Content-Type': self.ContentJSON,
-                'Stamp': self.stamp,
+                'Stamp': self.__stamp__,
                 'ccsp-device-id': self.deviceId
             }
             response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
@@ -625,7 +605,7 @@ class brandAuth():
                         'User-Agent': self.UserAgent,
                         'Connection': self.Connection,
                         'Content-Type': self.ContentJSON,
-                        'Stamp': self.stamp,
+                        'Stamp': self.__stamp__,
                         'ccsp-device-id': self.deviceId
                     }
                     logging.debug("login URL 7 "+url)
@@ -646,7 +626,7 @@ class brandAuth():
             else: self.vehicleId = vehicles[0]['vehicleId']
             logging.info("vehicleID %s", self.vehicleId)
             with open('session.pkl', 'wb') as f:
-                pickle.dump([self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.stamp],f)
+                pickle.dump([self.controlToken, self.accessToken, self.refreshToken, self.controlTokenExpiresAt, self.accessTokenExpiresAt, self.deviceId, self.vehicleId, self.cookies, self.__stamp__],f)
             # except:
                 # self.api_error('Login failed. URL: "'+ url + '", response: "' + response.text)
                 # return False
@@ -661,7 +641,7 @@ class brandAuth():
             # self.api_set_wakeup()
             # api_get_valetmode()
             # api_get_finaldestination()
-            logging.debug("Finished successfull login procedure")
+            logging.info("Finished successfull login procedure")
         return True
 
     def defaultHeaders(self):
@@ -688,7 +668,7 @@ class vehicleInteraction(brandAuth):
             'User-Agent': self.UserAgent,
             'Connection': self.Connection,
             'Content-Type': self.ContentJSON,
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'ccsp-device-id': self.deviceId
         }
         response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
@@ -703,7 +683,6 @@ class vehicleInteraction(brandAuth):
             self.api_error('NOK requesting valetmode. Error: ' + str(response.status_code) + response.text)
             return False
 
-
     def api_get_parklocation(self):
         url = self.BaseURL + '/api/v1/spa/vehicles/' + self.vehicleId + '/location/park'
         headers = {
@@ -717,7 +696,7 @@ class vehicleInteraction(brandAuth):
             'User-Agent': self.UserAgent,
             'Connection': self.Connection,
             'Content-Type': self.ContentJSON,
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'ccsp-device-id': self.deviceId
         }
         response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
@@ -732,7 +711,6 @@ class vehicleInteraction(brandAuth):
             self.api_error('NOK requesting location park. Error: ' + str(response.status_code) + response.text)
             return False
 
-
     def api_get_finaldestination(self):
         url = self.BaseURL + '/api/v1/spa/vehicles/' + self.vehicleId + '/finaldestionation'
         headers = {
@@ -746,7 +724,7 @@ class vehicleInteraction(brandAuth):
             'User-Agent': self.UserAgent,
             'Connection': self.Connection,
             'Content-Type': self.ContentJSON,
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'ccsp-device-id': self.deviceId
         }
         response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
@@ -761,7 +739,6 @@ class vehicleInteraction(brandAuth):
             self.api_error('NOK requesting final destination. Error: ' + str(response.status_code) + response.text)
             return False
 
-
     def api_set_wakeup(self):
         url = self.BaseURL + '/api/v1/spa/vehicles/' + self.vehicleId + '/control/engine'
         headers = {
@@ -775,7 +752,7 @@ class vehicleInteraction(brandAuth):
             'User-Agent': self.UserAgent,
             'Connection': self.Connection,
             'Content-Type': self.ContentJSON,
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'ccsp-device-id': self.deviceId
         }
         data = {"action": "prewakeup", "deviceId": self.deviceId}
@@ -785,7 +762,6 @@ class vehicleInteraction(brandAuth):
         else:
             self.api_error('NOK prewakeup. Error: ' + str(response.status_code) + response.text)
             return False
-
 
     def api_get_status(self, refresh=False, raw=True):
         logging.debug('into get status')
@@ -799,7 +775,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         try:
@@ -824,7 +800,6 @@ class vehicleInteraction(brandAuth):
             self.api_error('NOK requesting status. Error: ' + str(response.status_code) + response.text)
             return False
 
-
     def api_get_odometer(self):
         if not self.check_control_token(): return False
         # odometer
@@ -833,7 +808,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         response = requests.get(url, headers=headers, timeout=self.timeout)
@@ -848,7 +823,6 @@ class vehicleInteraction(brandAuth):
             self.api_error('NOK requesting odometer. Error: ' + str(response.status_code) + response.text)
             return False
 
-
     def api_get_location(self):
         if not self.check_control_token(): return False
         # location
@@ -857,7 +831,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
 
@@ -872,7 +846,6 @@ class vehicleInteraction(brandAuth):
         else:
             self.api_error('NOK requesting location. Error: ' + str(response.status_code) + response.text)
             return False
-
 
     def api_set_lock(self, action='close'):
         if action == "":
@@ -900,7 +873,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
 
@@ -912,7 +885,6 @@ class vehicleInteraction(brandAuth):
         else:
             self.api_error('Error sending lock. Error: ' + str(response.status_code)  + response.text)
             return False
-
 
     def api_set_charge(self, action='stop'):
         if action == "":
@@ -937,7 +909,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
 
@@ -949,7 +921,6 @@ class vehicleInteraction(brandAuth):
         else:
             self.api_error('Error sending start/stop charge. Error: ' + str(response.status_code) + response.text)
             return False
-
 
     def api_set_hvac(self, action='stop', temp='21.0', bdefrost=False, bheating=False):
         if action == "":
@@ -983,7 +954,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         data = {
@@ -1005,7 +976,6 @@ class vehicleInteraction(brandAuth):
             self.api_error('Error sending HVAC settings. Error: ' + str(response.status_code) + response.text)
             return False
 
-
     # ------------ tests -----------
     def api_get_chargeschedule(self):
         if not self.check_control_token(): return False
@@ -1015,7 +985,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         response = requests.get(url, headers=headers, timeout=self.timeout)
@@ -1103,7 +1073,7 @@ class vehicleInteraction(brandAuth):
                     'ccsp-application-id': self.CcspApplicationId,
                     'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
                     'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON,
-                    'Stamp': self.stamp,
+                    'Stamp': self.__stamp__,
                     'ccsp-device-id': self.deviceId
                 }
                 data['deviceId'] = self.deviceId
@@ -1123,7 +1093,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         data = {'targetSOClist': [{'plugType': 0, 'targetSOClevel': int(limit_fast)},
@@ -1143,7 +1113,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         data = poi_info_list
@@ -1165,7 +1135,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         response = requests.get(url, headers=headers, timeout=self.timeout)
@@ -1189,7 +1159,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         response = requests.get(url, headers=headers, timeout=self.timeout)
@@ -1225,7 +1195,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         data=[]
@@ -1254,7 +1224,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         data={'setRptMonth': "202006"}
@@ -1279,7 +1249,7 @@ class vehicleInteraction(brandAuth):
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage, 'Accept-Encoding': self.AcceptEncoding, 'offset': '2',
-            'Stamp': self.stamp,
+            'Stamp': self.__stamp__,
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         response = requests.get(url, headers=headers, timeout=self.timeout)
