@@ -10,6 +10,7 @@ from urllib.parse import parse_qs
 from datetime import datetime, timedelta
 from time import time
 from generic_lib import temp2hex
+from tools.stamps import postOffice
 
 class brandAuth():
     accessToken = None
@@ -22,10 +23,12 @@ class brandAuth():
         self.BasicToken = ''
         self.CcspApplicationId = ''
         #self.stamp = self.createStamp(self.car_brand)
-        self.stamp = self.getStampFromUrl(self.car_brand)
+        #self.stamp = self.getStampFromUrl(self.car_brand)
+        self.stamp = None
         self.BaseHost = 'prd.eu-ccapi.' + self.car_brand + '.com:8080'
         self.BaseURL = 'https://' + self.BaseHost
         self.timeout = 10
+        self.stampProvider = postOffice(self.car_brand, False)
         return
         
     def api_error(self, message):
@@ -33,23 +36,23 @@ class brandAuth():
         logger.error(message)
         print(message)
 
-    def createStamp(self, carbrand):
-        filename = carbrand+'list.txt'
-        logging.info('CreateStamp: reading stamp from file: ' + filename)
-        with open(carbrand+'list.txt') as f:
-            lines = f.readlines()
-        return random.choice(lines).rstrip("\n")
+    # def createStamp(self, carbrand):
+        # filename = carbrand+'list.txt'
+        # logging.info('CreateStamp: reading stamp from file: ' + filename)
+        # with open(carbrand+'list.txt') as f:
+            # lines = f.readlines()
+        # return random.choice(lines).rstrip("\n")
 
-    def getStampFromUrl(self, file, stampsFile = "https://raw.githubusercontent.com/neoPix/bluelinky-stamps/master/"):
-        # if (stampsFile.startsWith('file://')) :
-            # const [,path] = stampsFile.split('file://');
-            # const content = await promisify(readFile)(path);
-            # return JSON.parse(content.toString('utf-8'));
-        # }
-        url = stampsFile + file + ".json"
-        logging.info("getStampFromUrl: reading from URL: " + url)
-        body = requests.get(url)
-        return random.choice(body.json()).rstrip("\n");
+    # def getStampFromUrl(self, file, stampsFile = "https://raw.githubusercontent.com/neoPix/bluelinky-stamps/master/"):
+        # # if (stampsFile.startsWith('file://')) :
+            # # const [,path] = stampsFile.split('file://');
+            # # const content = await promisify(readFile)(path);
+            # # return JSON.parse(content.toString('utf-8'));
+        # # }
+        # url = stampsFile + file + ".json"
+        # logging.info("getStampFromUrl: reading from URL: " + url)
+        # body = requests.get(url)
+        # return random.choice(body.json()).rstrip("\n");
 
 
     def get_constants(self):
@@ -173,6 +176,7 @@ class brandAuth():
 
     def login_legacy(self, email, password, pin, vin):
         self.pin = pin
+        self.stamp = self.stampProvider.getStamp()
         url = "no URL set yet"
         logging.info('entering login legacy, car brand:  %s, email: %s', self.car_brand, email)
         self.get_constants()
@@ -417,6 +421,7 @@ class brandAuth():
 
     def login_brand(self, email, password, pin, vin):
         self.pin = pin
+        self.stamp = self.stampProvider.getStamp()
         url = "no URL set yet"
         logging.info('entering login, car brand:  %s, email: %s', self.car_brand, email)
         self.get_constants()
@@ -788,6 +793,7 @@ class vehicleInteraction(brandAuth):
         if not self.check_control_token(): return False
         logging.debug('checked control token')
         cachestring = '' if refresh else '/latest'
+        timeout = self.timeout*6 if refresh else self.timeout #a refresh takes more time so the standard timeout may not be long enough
         url = self.BaseURL + '/api/v2/spa/vehicles/' + self.vehicleId + '/status' + cachestring
         headers = {
             'Host': self.BaseHost, 'Accept': self.Accept, 'Authorization': self.controlToken,
@@ -797,7 +803,7 @@ class vehicleInteraction(brandAuth):
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         try:
-            response = requests.get(url, headers=headers, timeout=self.timeout)
+            response = requests.get(url, headers=headers, timeout=timeout)
         except requests.exceptions.ReadTimeout:
             self.api_error("Timeout: failed to get status.")
             return False
