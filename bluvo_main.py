@@ -1,6 +1,6 @@
 from datetime import datetime
 from bluvo_lib import vehicleInteraction
-from generic_lib import distance
+from generic_lib import distance, hex2temp
 import logging
 import random
 from abrp import ABRP
@@ -54,7 +54,7 @@ class BlueLink:
             'climateactive': carstatus['airCtrlOn'],
             'steerwheelheat': carstatus['steerWheelHeat'],
             'rearwindowheat': carstatus['sideBackWindowHeat'],
-            'temperature': self.vehicle.hex2temp(carstatus['airTemp']['value']),
+            'temperature': hex2temp(carstatus['airTemp']['value']),
             'defrost': carstatus['defrost'],
             'engine': carstatus['engine'],
             'acc': carstatus['acc'],

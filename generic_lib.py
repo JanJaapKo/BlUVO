@@ -76,5 +76,17 @@ def distance(lat1, lon1, lat2, lon2):
     a = 0.5 - cos((lat2 - lat1) * p) / 2 + cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2
     return 12742 * asin(sqrt(a))
 
+def temp2hex(temp):
+    if temp <= 14: return "00H"
+    if temp >= 30: return "20H"
+    return str.upper(hex(round(float(temp) * 2) - 28).split("x")[1]) + "H"  # rounds to .5 and transforms to Kia-hex (cut off 0x and add H at the end)
+
+def hex2temp(hextemp):
+    temp = int(hextemp[:2], 16) / 2 + 14
+    if temp <= 14: return 14
+    if temp >= 30: return 30
+    return temp
+
+
 #TODO google time from home
     #with google key calculate driving time from home

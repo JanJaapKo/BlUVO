@@ -9,6 +9,7 @@ import urllib.parse as urlparse
 from urllib.parse import parse_qs
 from datetime import datetime, timedelta
 from time import time
+from generic_lib import temp2hex
 
 class brandAuth():
     accessToken = None
@@ -797,8 +798,8 @@ class vehicleInteraction(brandAuth):
         }
         try:
             response = requests.get(url, headers=headers, timeout=self.timeout)
-        except:
-            self.api_error("failed to get status.")
+        except requests.exceptions.ReadTimeout:
+            self.api_error("Timeout: failed to get status.")
             return False
             
         logging.debug('got status')
@@ -961,7 +962,7 @@ class vehicleInteraction(brandAuth):
             self.api_error('NOK Invalid HVAC parameter')
             return False
         try:
-            tempcode = self.temp2hex(temp)
+            tempcode = temp2hex(temp)
         except:
             tempcode = "0EH"  # default 21 celcius
         try:
@@ -1074,8 +1075,8 @@ class vehicleInteraction(brandAuth):
                     else:
                         data['reservChargeInfo']['reservChargeInfoDetail']['reservFatcSet']['airCtrl'] = 1
                         data['reservChargeInfo2']['reservChargeInfoDetail']['reservFatcSet']['airCtrl'] = 1
-                        data['reservChargeInfo']['reservChargeInfoDetail']['reservFatcSet']['airTemp']['value'] = self.temp2hex(str(tempset[0]))
-                        data['reservChargeInfo2']['reservChargeInfoDetail']['reservFatcSet']['airTemp']['value'] = self.temp2hex(str(tempset[0]))
+                        data['reservChargeInfo']['reservChargeInfoDetail']['reservFatcSet']['airTemp']['value'] = temp2hex(str(tempset[0]))
+                        data['reservChargeInfo2']['reservChargeInfoDetail']['reservFatcSet']['airTemp']['value'] = temp2hex(str(tempset[0]))
                         data['reservChargeInfo']['reservChargeInfoDetail']['reservFatcSet']['defrost'] = tempset[1]
                         data['reservChargeInfo2']['reservChargeInfoDetail']['reservFatcSet']['defrost'] = tempset[1]
 
@@ -1287,21 +1288,10 @@ class vehicleInteraction(brandAuth):
             self.api_error('NOK Getting monthlyreportlist. Error: ' + str(response.status_code) + response.text)
             return False
 
-    def temp2hex(self, temp):
-        if temp <= 14: return "00H"
-        if temp >= 30: return "20H"
-        return str.upper(hex(round(float(temp) * 2) - 28).split("x")[1]) + "H"  # rounds to .5 and transforms to Kia-hex (cut off 0x and add H at the end)
-
-    def hex2temp(self, hextemp):
-        temp = int(hextemp[:2], 16) / 2 + 14
-        if temp <= 14: return 14
-        if temp >= 30: return 30
-        return temp
-
-    def api_error(self, message):
-        logger = logging.getLogger('root')
-        logger.error(message)
-        print(message)
+    # def api_error(self, message):
+        # logger = logging.getLogger('root')
+        # logger.error(message)
+        # print(message)
 
     # TODO implement the other services
     '''
