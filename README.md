@@ -1,14 +1,11 @@
 # BlUVO
  
-BlUvo Plugin
+## BlUvo Plugin
 An application or Domoticz plugin for Kia UVO and Hyundai Bluelink EV's (generally MY2020 and beyond). Use at own risk!
-Note, if you experience a 401 error:
-- Remove session.pkl and restart.
-- If running from Domoticz, be sure to move kialist.txt and hyundailist.txt into your domoticz homefolder.
 
 This plugin will communicate with servers of Kia and Hyundai and through them with your car. Polling your car means draining battery and worst case, an empty battery. Educate yourself by googling "auxiliary battery drain Niro Kona Soul"
 
-Email, Password, Pin are same as in you Bluelink or UVO app. Cartype is mandatory, to distinguish Kia or Hyundai BlueLink operation. It is also used for ABRP integration.
+Email, Password, Pin are same as in your Bluelink or UVO app. Cartype is mandatory, to distinguish Kia or Hyundai BlueLink operation. It is also used for ABRP integration.
 
 ABRP (optional) and weather (even more optional)
 This plugin will send current state of charge (SoC) and local temperature to your ABRP account to have the most accurate route planning, even on the road.
@@ -22,33 +19,23 @@ Forced poll interval - Polls the car actively every x minutes. Default 60 (1 hou
 Watching an external flag, eg in domoticz. Car will be polled if that flag is set to 1. You may want to define a timer on that flag to turn it off automatically. If you use iOS you can achieve enabling and disabling this flag by iOS Shortcuts when plugin in and out of Apple Carplay. 
 The active car polling stops when you are no longer driving or charging and the FlagInCar is not set.
 
-If session.pkl is removed or not present, the app is 'installed' as if it were a mobile phone app, session parameters are saved to disk. If it is present, existing session parameters are used.
-
+## Stand alone usage
+You can use the plugin stand alone:
 Fill params.py with the parameters.
-
+```
 p_email = 'your email address from bluelinky or UVO app'
-
 p_password = 'your password from the app'
-
 p_pin = 'your pin from the app'
-
 p_vin = vin of car you want to manage, not relevant if only 1 car is in your profile
-
 p_abrp_token = 'abrp token (find in ABRP Torque Pro setup instructions)'
-
 p_abrp_carmodel = 'ABRP car type, find in ABRP API'
-
 p_WeatherApiKey = 'api key if you want actual weather uploaded to ABRP'
-
 p_WeatherProvider = 'weather provider Darksky or OpenWeather if you want actual weather uploaded to ABRP'
-
 p_homelocation="homelatitude;homelongitude"
-
 p_forcepollinterval = 120 # forces application to poll actively every so many minutes
-
 p_charginginterval = 60 # forces application to poll actively every so many minutes while charging
-
 p_heartbeatinterval = 30 # forces application to read from cache every so many minutes
+```
 
 <div>Icons made by <a href="https://www.flaticon.com/authors/darius-dan" title="Darius Dan">Darius Dan</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 <div>Icons made by <a href="https://flat-icons.com/" title="Flat Icons">Flat Icons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
