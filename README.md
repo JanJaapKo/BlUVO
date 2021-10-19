@@ -5,6 +5,36 @@ An application or Domoticz plugin for Kia UVO and Hyundai Bluelink EV's (general
 
 This plugin will communicate with servers of Kia and Hyundai and through them with your car. Polling your car means draining battery and worst case, an empty battery. Educate yourself by googling "auxiliary battery drain Niro Kona Soul"
 
+### Prerequisits
+- Follow the Domoticz guide on [Using Python Plugins](https://www.domoticz.com/wiki/Using_Python_plugins) to enable the plugin framework.
+- Requires a Kia or Bluelink account to fetch login details for your car
+
+The following Python modules installed
+```
+sudo apt-get update
+sudo apt-get install python3-requests
+sudo pip3 install crypto
+```
+
+### Installation
+
+1. Clone repository into your domoticz plugins folder
+```
+cd domoticz/plugins
+git clone https://github.com/JanJaapKo/BlUVO
+```
+to update:
+```
+cd domoticz/plugins/DysonPureLink
+git pull https://github.com/JanJaapKo/BlUVO
+```
+2. Restart domoticz
+3. Go to "Hardware" page and add new item with type "Kia UVO and Hyundai Bluelink"
+4. Fill in configuration parameters as explained below
+
+### Configuration
+
+
 Email, Password, Pin are same as in your Bluelink or UVO app. Cartype is mandatory, to distinguish Kia or Hyundai BlueLink operation. It is also used for ABRP integration.
 
 ABRP (optional) and weather (even more optional)
