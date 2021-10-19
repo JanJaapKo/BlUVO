@@ -50,7 +50,7 @@ if bluelink.initSuccess:
                 except:
                     manualForcePoll = False
                 print(manualForcePoll)
-                updated, parsedStatus, afstand, googlelocation = bluelink.vehicle.pollcar(manualForcePoll)
+                updated, parsedStatus, afstand, googlelocation = bluelink.pollcar(manualForcePoll)
                 # clear semaphore flag
                 manualForcePoll = False
                 with open('semaphore.pkl', 'wb') as f:
@@ -67,7 +67,7 @@ if bluelink.initSuccess:
                     if parsedStatus['dooropenFL']: print("bestuurdersportier open")
                     print("soc12v ", parsedStatus['charge12V'], "status 12V", parsedStatus['status12V'])
                     print("=============")
-                time.sleep(heartbeatinterval)
+                time.sleep(bluelink.heartbeatinterval)
         if x == 8: print(bluelink.vehicle.api_set_navigation(geolookup(input("Press Enter address to navigate to..."))))
         if x == 9:
             invoer = input("Enter maximum for fast and slow charging (space or comma or semicolon or colon seperated)")

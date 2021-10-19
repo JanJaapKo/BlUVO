@@ -13,7 +13,6 @@ def convert_if_bool(value):
     else:
         return value
 
-
 def georeverse(lat, lon):
     get_address_url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&lat=' + str(lat) + '&lon=' + str(lon)
     response = requests.get(get_address_url)
@@ -22,7 +21,6 @@ def georeverse(lat, lon):
         return response['display_name']
     else:
         return False
-
 
 def geolookup(locationtolookup):
     get_address_url = 'https://nominatim.openstreetmap.org/search?q='+quote(locationtolookup) + '&format=geocodejson&addressdetails=1&limit=1'
@@ -52,7 +50,6 @@ def geolookup(locationtolookup):
             return poi_info
         except: return False
     else: return False
-
 
 def get_location_temperature(weather_api_key, weather_provider, lat, lon):
     if weather_provider == 'DarkSky':

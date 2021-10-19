@@ -39,48 +39,48 @@ class BlueLink:
         afstand = 0
         googlelocation = ""
         parsedstatus = {}
-        #try:
-        parsedstatus = {
-            'hoodopen': carstatus['hoodOpen'],
-            'trunkopen': carstatus['trunkOpen'],
-            'locked': carstatus['doorLock'],
-            'dooropenFL': carstatus['doorOpen']['frontLeft'],
-            'dooropenFR': carstatus['doorOpen']['frontRight'],
-            'dooropenRL': carstatus['doorOpen']['backLeft'],
-            'dooropenRR': carstatus['doorOpen']['backRight'],
-            'dooropenANY': (carstatus['doorOpen']['frontLeft'] or carstatus['doorOpen']['backLeft'] or carstatus['doorOpen']['backRight'] or carstatus['doorOpen']['frontRight']),
-            'tirewarningFL': carstatus['tirePressureLamp']['tirePressureLampFL'],
-            'tirewarningFR': carstatus['tirePressureLamp']['tirePressureLampFR'],
-            'tirewarningRL': carstatus['tirePressureLamp']['tirePressureLampRL'],
-            'tirewarningRR': carstatus['tirePressureLamp']['tirePressureLampRR'],
-            'tirewarningall': carstatus['tirePressureLamp']['tirePressureLampAll'],
-            'climateactive': carstatus['airCtrlOn'],
-            'steerwheelheat': carstatus['steerWheelHeat'],
-            'rearwindowheat': carstatus['sideBackWindowHeat'],
-            'temperature': hex2temp(carstatus['airTemp']['value']),
-            'defrost': carstatus['defrost'],
-            'engine': carstatus['engine'],
-            'acc': carstatus['acc'],
-            'range': carstatus['evStatus']['drvDistance'][0]['rangeByFuel']['totalAvailableRange']['value'],
-            'charge12V': carstatus['battery']['batSoc'],
-            'status12V': carstatus['battery']['batState'],
-            'charging': carstatus['evStatus']['batteryCharge'],
-            'chargeHV': carstatus['evStatus']['batteryStatus'],
-            'pluggedin': carstatus['evStatus']['batteryPlugin'],
-            'heading': location['head'],
-            'speed': location['speed']['value'],
-            'loclat': location['coord']['lat'],
-            'loclon': location['coord']['lon'],
-            'odometer': odometer,
-            'time': carstatus['time'],
-            'chargingTime': carstatus['evStatus']['remainTime2']['atc'] ['value']
-        }
-        afstand = round(distance(parsedstatus['loclat'], parsedstatus['loclon'], float(self.homelat), float(self.homelon)), 1)
-        googlelocation = 'href="http://www.google.com/maps/search/?api=1&query=' + str(parsedstatus['loclat']) + ',' + str(
-            parsedstatus['loclon']) + '">'
-        self.abrp.send_abr_ptelemetry(parsedstatus['chargeHV'], parsedstatus['speed'], parsedstatus['loclat'], parsedstatus['loclon'], parsedstatus['charging'])
-        # except:
-            # logging.error("something went wrong in process data procedure")
+        try:
+            parsedstatus = {
+                'hoodopen': carstatus['hoodOpen'],
+                'trunkopen': carstatus['trunkOpen'],
+                'locked': carstatus['doorLock'],
+                'dooropenFL': carstatus['doorOpen']['frontLeft'],
+                'dooropenFR': carstatus['doorOpen']['frontRight'],
+                'dooropenRL': carstatus['doorOpen']['backLeft'],
+                'dooropenRR': carstatus['doorOpen']['backRight'],
+                'dooropenANY': (carstatus['doorOpen']['frontLeft'] or carstatus['doorOpen']['backLeft'] or carstatus['doorOpen']['backRight'] or carstatus['doorOpen']['frontRight']),
+                'tirewarningFL': carstatus['tirePressureLamp']['tirePressureLampFL'],
+                'tirewarningFR': carstatus['tirePressureLamp']['tirePressureLampFR'],
+                'tirewarningRL': carstatus['tirePressureLamp']['tirePressureLampRL'],
+                'tirewarningRR': carstatus['tirePressureLamp']['tirePressureLampRR'],
+                'tirewarningall': carstatus['tirePressureLamp']['tirePressureLampAll'],
+                'climateactive': carstatus['airCtrlOn'],
+                'steerwheelheat': carstatus['steerWheelHeat'],
+                'rearwindowheat': carstatus['sideBackWindowHeat'],
+                'temperature': hex2temp(carstatus['airTemp']['value']),
+                'defrost': carstatus['defrost'],
+                'engine': carstatus['engine'],
+                'acc': carstatus['acc'],
+                'range': carstatus['evStatus']['drvDistance'][0]['rangeByFuel']['totalAvailableRange']['value'],
+                'charge12V': carstatus['battery']['batSoc'],
+                'status12V': carstatus['battery']['batState'],
+                'charging': carstatus['evStatus']['batteryCharge'],
+                'chargeHV': carstatus['evStatus']['batteryStatus'],
+                'pluggedin': carstatus['evStatus']['batteryPlugin'],
+                'heading': location['head'],
+                'speed': location['speed']['value'],
+                'loclat': location['coord']['lat'],
+                'loclon': location['coord']['lon'],
+                'odometer': odometer,
+                'time': carstatus['time'],
+                'chargingTime': carstatus['evStatus']['remainTime2']['atc'] ['value']
+            }
+            afstand = round(distance(parsedstatus['loclat'], parsedstatus['loclon'], float(self.homelat), float(self.homelon)), 1)
+            googlelocation = 'href="http://www.google.com/maps/search/?api=1&query=' + str(parsedstatus['loclat']) + ',' + str(
+                parsedstatus['loclon']) + '">'
+            self.abrp.send_abr_ptelemetry(parsedstatus['chargeHV'], parsedstatus['speed'], parsedstatus['loclat'], parsedstatus['loclon'], parsedstatus['charging'])
+        except:
+            logging.error("something went wrong in process data procedure")
         return parsedstatus, afstand, googlelocation
 
 
@@ -170,7 +170,7 @@ class BlueLink:
                 truecond = ''
                 for i in range(len(strings)):
                     if conditions[i]: truecond += (" " + strings[i])
-                logging.info("these conditions for a reload were true:%s", truecond)
+                logging.info("Polling car: these conditions for a reload were true:%s", truecond)
                 self.pollcounter += 1
                 carstatus = self.vehicle.api_get_status(True)
 
@@ -215,10 +215,8 @@ class BlueLink:
     def setcharge(self, command):
         return api_set_charge(command)
 
-
     def lockdoors(self, command):
         return api_set_lock(command)
-
 
     def setairco(self, action, temp):
         return api_set_hvac(action, temp, False, False)
