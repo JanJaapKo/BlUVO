@@ -29,11 +29,6 @@ class postOffice():
         return True
 
     def getStampListFromUrl(self, stampsFile = "https://raw.githubusercontent.com/neoPix/bluelinky-stamps/master/"):
-        # if (stampsFile.startsWith('file://')) :
-            # const [,path] = stampsFile.split('file://');
-            # const content = await promisify(readFile)(path);
-            # return JSON.parse(content.toString('utf-8'));
-        # }
         url = stampsFile + self.carbrand + ".json"
         logging.info("getStampFromUrl: reading from URL: " + url)
         body = requests.get(url)
