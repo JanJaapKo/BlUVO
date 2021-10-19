@@ -3,7 +3,7 @@
 #           Author:     pierre levres, 2020
 #
 """
-<plugin key="bluvo" name="Kia UVO and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="1.1.0">
+<plugin key="bluvo" name="Kia UVO and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="1.1.1">
     <description>
         <h2>BlUvo Plugin</h2>
         A plugin for Kia UVO and Hyundai Bluelink EV's (generally MY2020 and beyond). Use at own risk!
@@ -85,7 +85,6 @@
 import Domoticz, logging
 import random
 from datetime import datetime
-#from bluvo_main import initialise, pollcar, setcharge, lockdoors, setairco
 from bluvo_main import BlueLink
 
 class BasePlugin:

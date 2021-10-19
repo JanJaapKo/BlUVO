@@ -16,7 +16,7 @@ class weatherInfo():
                 return response['currently']['temperature']
             else: return False
         elif self.weather_provider == 'OpenWeather':
-            get_weather_url = 'https://api.openweathermap.org/data/2.5/weather?lat=' + cur_lat + '&lon=' + cur_lon + '&appid=' + self.weather_api_key + '&type=accurate&units=metric'
+            get_weather_url = 'https://api.openweathermap.org/data/2.5/weather?lat=' + str(cur_lat) + '&lon=' + str(cur_lon) + '&appid=' + self.weather_api_key + '&type=accurate&units=metric'
             response = requests.get(get_weather_url)
             if response.status_code == 200:
                 response = json.loads(response.text)

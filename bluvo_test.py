@@ -76,7 +76,7 @@ if bluelink.initSuccess:
 
         if x == 10: print(json.dumps(bluelink.vehicle.api_get_chargeschedule(),indent=4))
         if x == 11: print(bluelink.vehicle.api_get_services())
-        if x == 12: bluelink.pollcar(True)
+        if x == 12: print(str(bluelink.pollcar(True)))
         if x == 13:
             print( "feature removed")
         if x == 14: print(bluelink.vehicle.api_get_odometer())
