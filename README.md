@@ -21,12 +21,12 @@ sudo pip3 install crypto
 1. Clone repository into your domoticz plugins folder
 ```
 cd domoticz/plugins
-git clone https://github.com/JanJaapKo/BlUVO
+git clone git@github.com:JanJaapKo/BlUVO
 ```
 to update:
 ```
-cd domoticz/plugins/DysonPureLink
-git pull https://github.com/JanJaapKo/BlUVO
+cd domoticz/plugins/BlUVO
+git pull
 ```
 2. Restart domoticz
 3. Go to "Hardware" page and add new item with type "Kia UVO and Hyundai Bluelink"
