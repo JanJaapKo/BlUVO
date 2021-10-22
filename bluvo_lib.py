@@ -633,7 +633,7 @@ class vehicleInteraction(brandAuth):
         headers = {
             'Host': self.BaseHost,
             'Accept': self.Accept,
-            'Authorization': accessToken,
+            'Authorization': self.accessToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage,
             'Accept-Encoding': self.AcceptEncoding,
@@ -661,7 +661,7 @@ class vehicleInteraction(brandAuth):
         headers = {
             'Host': self.BaseHost,
             'Accept': self.Accept,
-            'Authorization': self.controlToken,
+            'Authorization': self.accessToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage,
             'Accept-Encoding': self.AcceptEncoding,
@@ -689,7 +689,7 @@ class vehicleInteraction(brandAuth):
         headers = {
             'Host': self.BaseHost,
             'Accept': self.Accept,
-            'Authorization': self.controlToken,
+            'Authorization': self.accessToken,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage,
             'Accept-Encoding': self.AcceptEncoding,
@@ -717,7 +717,7 @@ class vehicleInteraction(brandAuth):
         headers = {
             'Host': self.BaseHost,
             'Accept': self.Accept,
-            'Authorization': accessToken,
+            'Authorization': self.accessToken,
             'Accept-Encoding': self.AcceptEncoding,
             'ccsp-application-id': self.CcspApplicationId,
             'Accept-Language': self.AcceptLanguage,
@@ -766,6 +766,8 @@ class vehicleInteraction(brandAuth):
                 if raw: return response['resMsg']
                 if not refresh: response = response['resMsg']['vehicleStatusInfo']['vehicleStatus']
                 return response
+            except requests.exceptions.RequestException as exp:
+                self.api_error("RequestException: " + str(exp))
             except:
                 self.api_error('NOK parsing status: ' + response)
                 return False
@@ -1189,7 +1191,7 @@ class vehicleInteraction(brandAuth):
             return False
 
 
-    def api_get_monthlyreport(self, month):
+    def api_get_monthlyreport(self, year, month):
         if not self.check_control_token(): return False
         # location
         url = self.BaseURL + '/api/v2/spa/vehicles/' + self.vehicleId + '/monthlyreport'
@@ -1201,6 +1203,7 @@ class vehicleInteraction(brandAuth):
             'User-Agent': self.UserAgent, 'Connection': self.Connection, 'Content-Type': self.ContentJSON, 'ccsp-device-id': self.deviceId
         }
         data={'setRptMonth': "202006"}
+        #data={'setRptMonth': str(year)+str(month)}
         response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
         if response.status_code == 200:
             try:
