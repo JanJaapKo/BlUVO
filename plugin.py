@@ -3,7 +3,7 @@
 #           Author:     pierre levres, 2020
 #
 """
-<plugin key="bluvo" name="Kia UVO and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="1.1.2">
+<plugin key="bluvo" name="Kia UVO and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="1.1.3">
     <description>
         <h2>BlUvo Plugin</h2>
         A plugin for Kia UVO and Hyundai Bluelink EV's (generally MY2020 and beyond). Use at own risk!
@@ -169,15 +169,15 @@ class BasePlugin:
         intervals = Parameters["Mode3"]
         for delim in ',;:': intervals = intervals.replace(delim, ' ')
         intervals=intervals.split(" ")
-        p_forcepollinterval = float(intervals[0])
-        p_charginginterval = float(intervals[1])
+        self.p_forcepollinterval = float(intervals[0])
+        self.p_charginginterval = float(intervals[1])
         self.heartbeatinterval = float(intervals[2])
         if self.heartbeatinterval == "":
             self.heartbeatinterval = float(120)
         else:
             self.heartbeatinterval = float(self.heartbeatinterval) * 60
         self.bluelink = BlueLink(p_email, p_password, p_pin, p_vin, p_abrp_carmodel, p_abrp_token, p_WeatherApiKey, p_WeatherProvider, p_homelocation)
-        self.bluelink.initialise(p_forcepollinterval, p_charginginterval)
+        self.bluelink.initialise(self.p_forcepollinterval, self.p_charginginterval)
         if self.bluelink.initSuccess:
             Domoticz.Heartbeat(15)
         else:
@@ -214,7 +214,7 @@ class BasePlugin:
     def onHeartbeat(self):
         if self.bluelink.initSuccess == False:
             logging.debug("heartbeat skipped because initialisation failed. Retry to initialise")
-            self.bluelink.initialise(p_forcepollinterval, p_charginginterval)
+            self.bluelink.initialise(self.p_forcepollinterval, self.p_charginginterval)
         else:
             #try:
             manualForcePoll = (Devices[9].nValue == 1)

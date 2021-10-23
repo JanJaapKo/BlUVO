@@ -21,7 +21,7 @@ class postOffice():
         
     def getStampListFromLocal(self):
         filename = self.carbrand+'list.txt'
-        logging.info('CreateStamp: reading stamp from file: ' + filename)
+        logging.info('PostOffice: CreateStamp: reading stamp from file: ' + filename)
         with open(self.carbrand+'list.txt') as f:
             self.stampList = f.readlines()
         self.expiry_date = datetime.datetime.now() + datetime.timedelta(days=7)
@@ -30,9 +30,9 @@ class postOffice():
 
     def getStampListFromUrl(self, stampsFile = "https://raw.githubusercontent.com/neoPix/bluelinky-stamps/master/"):
         url = stampsFile + self.carbrand + ".json"
-        logging.info("getStampFromUrl: reading from URL: " + url)
+        logging.info("PostOffice: getStampFromUrl: reading from URL: " + url)
         body = requests.get(url)
-        logging.debug("length of received stamps list: {0}".format(len(body.json())))
+        logging.debug("PostOffice: length of received stamps list: {0}".format(len(body.json())))
         self.stampList = body.json()
         self.expiry_date = datetime.datetime.now() + datetime.timedelta(days=7)
         return True
@@ -41,6 +41,7 @@ class postOffice():
     def getStamp(self):
         #get a stamp from the list and remove it
         self.checkStampValid()
+        logging.info('PostOffice: handig out a new stamp')
         return self.stampList.pop(random.randrange(len(self.stampList))).rstrip("\n")
         
     def checkStampValid(self):
@@ -51,7 +52,7 @@ class postOffice():
                 self.getStampListFromLocal()
             else:
                 self.getStampListFromUrl()
-            logging.debug("we have " + str(len(self.stampList)) + " stamps that expire at " + self.expiry_date.strftime("%Y-%m-%d %H:%M:%S"))
+            logging.debug("PostOffice: we have " + str(len(self.stampList)) + " stamps that expire at " + self.expiry_date.strftime("%Y-%m-%d %H:%M:%S"))
             self.__stampValid = True
         return
 
@@ -61,4 +62,5 @@ class postOffice():
     
     @stampValid.setter
     def stampValid(self, state):
+        logging.debug('PostOffice: setting stamp validity to ' + str(state))
         self.__stampValid = state
