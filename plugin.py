@@ -95,12 +95,12 @@ class BasePlugin:
             Domoticz.Debugging(1)
             DumpConfigToLog()
             Domoticz.Log('Debug mode')
-            logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='bluvo.log',level=logging.DEBUG)
+            logging.basicConfig(format='%(asctime)s - %(levelname)-8s - %(filename)-18s - %(message)s', filename='bluvo.log',level=logging.DEBUG)
         else:
             Domoticz.Debugging(0)
-            if Parameters["SerialPort"] == "2": logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='bluvo.log', level=logging.INFO)
-            elif Parameters["SerialPort"] == "3": logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='bluvo.log', level=logging.WARNING)
-            else: logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='bluvo.log', level=logging.ERROR)
+            if Parameters["SerialPort"] == "2": logging.basicConfig(format='%(asctime)s - %(levelname)-8s - %(filename)-18s - %(message)s', filename='bluvo.log', level=logging.INFO)
+            elif Parameters["SerialPort"] == "3": logging.basicConfig(format='%(asctime)s - %(levelname)-8s - %(filename)-18s - %(message)s', filename='bluvo.log', level=logging.WARNING)
+            else: logging.basicConfig(format='%(asctime)s - %(levelname)-8s - %(filename)-18s - %(message)s', filename='bluvo.log', level=logging.ERROR)
 
         logging.info('started plugin')
         '''

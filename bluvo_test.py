@@ -9,7 +9,7 @@ from tools.stamps import postOffice
 
 from params import *  # p_parameters are read
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='bluvo_test.log',
+logging.basicConfig(format='%(asctime)s - %(levelname)-8s - %(filename)-18s - %(message)s', filename='bluvo_test.log',
                     level=logging.DEBUG)
 
 menuoptions = ['0 exit',"1 Lock", "2 Unlock", "3 Status", "4 Status formatted", "5 Status refresh", "6 location", "7 loop status",

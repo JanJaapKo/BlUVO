@@ -92,7 +92,7 @@ class brandAuth():
                 'User-Agent': self.UserAgent,
                 'Accept-Language': self.AcceptLanguage,
                 'Stamp': self.__stamp__,
-                'Authorization': BasicToken
+                'Authorization': self.BasicToken
                 }
             logging.debug(headers)
             data = 'redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect&refresh_token=' + self.refreshToken + '&grant_type=refresh_token'
@@ -628,6 +628,7 @@ class brandAuth():
         }
 
 class vehicleInteraction(brandAuth):
+        
     def api_get_valetmode(self):
         url = self.BaseURL + '/api/v1/spa/vehicles/' + self.vehicleId + '/status/valet'
         headers = {

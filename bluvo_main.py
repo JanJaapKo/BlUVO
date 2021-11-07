@@ -28,6 +28,7 @@ class BlueLink:
         self.abrp = ABRP(self.abrp_carmodel, abrp_token, weather_api_key, weather_provider)
         self.stampProvider = postOffice(self.car_brand, False)
         self.vehicle = vehicleInteraction(self.car_brand)
+        self.log_info = {'class':'BlueLink'}
         return
     
     def process_data(self, carstatus, location, odometer):
@@ -190,7 +191,11 @@ class BlueLink:
                         logging.debug("odometer before refresh %s and after %s", odometer, freshodometer)
                         if carstatus['engine'] or (freshodometer != odometer):
                             self.pollcounter += 1
-                            freshlocation = api_get_location()
+                            try:
+                                freshlocation = self.vehicle.api_get_location()
+                            except requests.ReadTimeout:
+                                logging.debug("refreshing vehicle location timed out")
+                                freshlocation = False
 
                             if freshlocation is not False:
                                 freshlocation = freshlocation['gpsDetail']

@@ -10,6 +10,7 @@ class postOffice():
         self.stampList = []
         self.carbrand = carbrand
         self.__stampValid = False
+        self.log_info = { 'class': 'postOffice'}
 
     @property
     def use_local(self):
