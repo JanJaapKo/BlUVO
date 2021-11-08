@@ -4,6 +4,7 @@ from generic_lib import distance, hex2temp
 import logging
 import random
 import time
+import requests
 from abrp import ABRP
 from tools.stamps import postOffice
 from exceptions import * 
@@ -193,7 +194,7 @@ class BlueLink:
                             self.pollcounter += 1
                             try:
                                 freshlocation = self.vehicle.api_get_location()
-                            except requests.ReadTimeout:
+                            except requests.exceptions.ReadTimeout:
                                 logging.debug("refreshing vehicle location timed out")
                                 freshlocation = False
 
