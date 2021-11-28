@@ -218,12 +218,11 @@ class BlueLink:
         logging.debug('pollcount: %s', self.pollcounter)
         return updated, parsed_status, afstand, googlelocation
 
-
     def setcharge(self, command):
-        return api_set_charge(command)
+        return self.vehicle.api_set_charge(command)
 
     def lockdoors(self, command):
-        return api_set_lock(command)
+        return self.vehicle.api_set_lock(command)
 
     def setairco(self, action, temp):
-        return api_set_hvac(action, temp, False, False)
+        return self.vehicle.api_set_hvac(action, temp, False, False)

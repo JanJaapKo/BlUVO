@@ -824,6 +824,7 @@ class vehicleInteraction(brandAuth):
             return False
 
     def api_set_lock(self, action='close'):
+        logging.debug("set lock: action='"+action+ "'")
         if action == "":
             self.api_error('NOK Emtpy lock parameter')
             return False
@@ -899,6 +900,7 @@ class vehicleInteraction(brandAuth):
             return False
 
     def api_set_hvac(self, action='stop', temp='21.0', bdefrost=False, bheating=False):
+        logging.debug("set hvac: action='"+action+ "', temp='"+temp+"', bdefrost='"+str(bdefrost)+"', bheating='"+str(bheating)+"'")
         if action == "":
             self.api_error('NOK Emtpy HVAC parameter')
             return False

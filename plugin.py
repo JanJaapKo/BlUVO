@@ -185,7 +185,6 @@ class BasePlugin:
             return False
         return True
 
-
     def onConnect(self, Connection, Status, Description):
         return True
 
@@ -195,15 +194,15 @@ class BasePlugin:
     def onCommand(self, Unit, Command, Level, Hue):
         logging.info("unit %s, Command %s Level %s Hue %s",Unit, Command, Level, Hue)
         if Unit==3:
-            setcharge(Command)
+            self.bluelink.setcharge(Command)
             UpdateDevice(3, 0 if Command == "Off" else 1, 0 if Command == "Off" else 1)
         if Unit==9: UpdateDevice(9, 0 if Command=="Off" else 1, 0 if Command=="Off" else 1)
         if Unit==10:
-            lockdoors(Command)
+            self.bluelink.lockdoors(Command)
             UpdateDevice(10, 0 if Command=="Off" else 1 , 0 if Command=="Off" else 1)
         if Unit==11:
             climate = "off" if Level < 17 else "on"
-            setairco(climate,Level)
+            self.bluelink.setairco(climate,Level)
             pluginName = Devices[11].Name.split(":")[0]
             Devices[11].Update(nValue=0, sValue=str(Level), Name=pluginName + ": " + climate)
         return True
@@ -259,6 +258,7 @@ class BasePlugin:
         return
 
     def onStop(self):
+        logging.info("stopping plugin")
         Domoticz.Log("onStop called")
         return True
 
