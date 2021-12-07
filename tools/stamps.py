@@ -25,8 +25,7 @@ class postOffice():
         logging.info('PostOffice: CreateStamp: reading stamp from file: ' + filename)
         with open(self.carbrand+'list.txt') as f:
             self.stampList = f.readlines()
-        self.expiry_date = datetime.datetime.now() + datetime.timedelta(days=7)
-        #return random.choice(lines).rstrip("\n")
+        self.expiry_date = datetime.datetime.now() + datetime.timedelta(days=6)
         return True
 
     def getStampListFromUrl(self, stampsFile = "https://raw.githubusercontent.com/neoPix/bluelinky-stamps/master/"):
@@ -37,7 +36,6 @@ class postOffice():
         self.stampList = body.json()
         self.expiry_date = datetime.datetime.now() + datetime.timedelta(days=7)
         return True
-        #return random.choice(body.json()).rstrip("\n");
     
     def getStamp(self):
         #get a stamp from the list and remove it
