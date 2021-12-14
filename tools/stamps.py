@@ -11,6 +11,7 @@ class postOffice():
         self.carbrand = carbrand
         self.__stampValid = False
         self.log_info = { 'class': 'postOffice'}
+        self.file_expiry_days = 6
 
     @property
     def use_local(self):
@@ -25,7 +26,7 @@ class postOffice():
         logging.info('PostOffice: CreateStamp: reading stamp from file: ' + filename)
         with open(self.carbrand+'list.txt') as f:
             self.stampList = f.readlines()
-        self.expiry_date = datetime.datetime.now() + datetime.timedelta(days=6)
+        self.expiry_date = datetime.datetime.now() + datetime.timedelta(days=self.file_expiry_days)
         return True
 
     def getStampListFromUrl(self, stampsFile = "https://raw.githubusercontent.com/neoPix/bluelinky-stamps/master/"):
@@ -34,7 +35,7 @@ class postOffice():
         body = requests.get(url)
         logging.debug("PostOffice: length of received stamps list: {0}".format(len(body.json())))
         self.stampList = body.json()
-        self.expiry_date = datetime.datetime.now() + datetime.timedelta(days=7)
+        self.expiry_date = datetime.datetime.now() + datetime.timedelta(days=self.file_expiry_days)
         return True
     
     def getStamp(self):
