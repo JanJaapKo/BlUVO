@@ -25,6 +25,7 @@ class brandAuth():
         self.BaseHost = 'prd.eu-ccapi.' + self.car_brand + '.com:8080'
         self.BaseURL = 'https://' + self.BaseHost
         self.timeout = 10
+        self.get_constants()
         return
     
     @property
@@ -47,7 +48,8 @@ class brandAuth():
         elif self.car_brand == 'hyundai':
             self.ServiceId = '6d477c38-3ca4-4cf3-9557-2a1929a94654'
             self.BasicToken = 'Basic NmQ0NzdjMzgtM2NhNC00Y2YzLTk1NTctMmExOTI5YTk0NjU0OktVeTQ5WHhQekxwTHVvSzB4aEJDNzdXNlZYaG10UVI5aVFobUlGampvWTRJcHhzVg=='
-            self.CcspApplicationId = '99cfff84-f4e2-4be8-a5ed-e5b755eb6581'
+            self.CcspApplicationId = '014d2225-8495-4735-812d-2616334fd15d'
+            #self.CcspApplicationId = '99cfff84-f4e2-4be8-a5ed-e5b755eb6581'
         else:
             self.api_error('Carbrand not OK.')
             return False
@@ -150,7 +152,7 @@ class brandAuth():
         self.pin = pin
         url = "no URL set yet"
         logging.info('entering login legacy, car brand:  %s, email: %s', self.car_brand, email)
-        self.get_constants()
+        #self.get_constants()
         logging.debug('login legacy: constants ServiceId %s BasicToken %s CcspApplicationId %s BaseHost %s BaseURL %s stamp %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.__stamp__)
         self.controlToken = self.accessToken = self.refreshToken = None
         self.controlTokenExpiresAt = self.accessTokenExpiresAt = datetime(1970, 1, 1, 0, 0, 0)
@@ -386,7 +388,7 @@ class brandAuth():
         self.pin = pin
         url = "no URL set yet"
         logging.info('entering login, car brand:  %s, email: %s', self.car_brand, email)
-        self.get_constants()
+        #self.get_constants()
         logging.debug('login: constants %s %s %s %s %s %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.__stamp__)
         self.controlToken = self.accessToken = self.refreshToken = None
         self.controlTokenExpiresAt = self.accessTokenExpiresAt = datetime(1970, 1, 1, 0, 0, 0)

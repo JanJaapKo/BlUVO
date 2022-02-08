@@ -27,8 +27,8 @@ class BlueLink:
         self.abrp_carmodel = abrp_carmodel
         self.car_brand = (self.abrp_carmodel.split(":", 1)[0])
         self.abrp = ABRP(self.abrp_carmodel, abrp_token, weather_api_key, weather_provider)
-        self.stampProvider = postOffice(self.car_brand, False)
         self.vehicle = vehicleInteraction(self.car_brand)
+        self.stampProvider = postOffice(self.car_brand, self.vehicle.CcspApplicationId, False)
         self.log_info = {'class':'BlueLink'}
         return
     
@@ -90,6 +90,7 @@ class BlueLink:
         # heartbeatinterval
         # p_parameters are fed into global variables
         logging.debug("into Initialise")
+
         if p_forcepollinterval == "":
             self.forcepollinterval = float(60*60)
         else:
@@ -127,6 +128,7 @@ class BlueLink:
         # reset pollcounter at start of day
         break_point = "start poll procedure"  # breakpoint
         carstatus = "empty car status"
+        start_time = datetime.now()
         if self.oldpolltime == "": 
             self.pollcounter = 0
         else:
@@ -216,6 +218,8 @@ class BlueLink:
             # logging.error('error in poll procedure, breakpoint: %s', break_point)
             # logging.error('carstatus: %s', carstatus)
         logging.debug('pollcount: %s', self.pollcounter)
+        end_time = datetime.now() - start_time
+        logging.info("finished polling car in " + str(end_time))
         return updated, parsed_status, afstand, googlelocation
 
     def setcharge(self, command):

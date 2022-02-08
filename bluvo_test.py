@@ -36,10 +36,9 @@ if bluelink.initSuccess:
         if x == 2: bluelink.vehicle.api_set_lock('off')
         if x == 3: print(bluelink.vehicle.api_get_status(False))
         if x == 4: 
-            status_record = bluelink.vehicle.api_get_status(False, False)
-            for thing in status_record:
-                print(thing + ": " + str(status_record[thing]))
-        if x == 5: print(bluelink.vehicle.api_get_status(True))
+            status_record = bluelink.vehicle.api_get_status(False)
+            print(json.dumps(status_record, sort_keys = True, indent=4))
+        if x == 5: print(json.dumps(bluelink.vehicle.api_get_status(True), sort_keys = True, indent=4))
         if x == 6:
             locatie = bluelink.vehicle.api_get_location()
             if locatie:
@@ -84,10 +83,10 @@ if bluelink.initSuccess:
         if x == 13:
             print( "feature removed")
         if x == 14: print(bluelink.vehicle.api_get_odometer())
-        if x == 15: print(bluelink.vehicle.api_get_parklocation())
-        if x == 16: print(bluelink.vehicle.api_get_userinfo())
-        if x == 17: print(bluelink.vehicle.api_get_monthlyreport(2021,5))
-        if x == 18: print(bluelink.vehicle.api_get_monthlyreportlist())
+        if x == 15: print(json.dumps(bluelink.vehicle.api_get_parklocation(), indent=4))
+        if x == 16: print(json.dumps(bluelink.vehicle.api_get_userinfo(), indent=4))
+        if x == 17: print(json.dumps(bluelink.vehicle.api_get_monthlyreport(2021,5), indent=4))
+        if x == 18: print(json.dumps(bluelink.vehicle.api_get_monthlyreportlist(), indent=4))
         input("Press Enter to continue...")
         # except (ValueError) as err:
             # print("error in menu keuze")
