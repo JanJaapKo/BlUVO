@@ -19,7 +19,7 @@ mymenu = consolemenu.SelectionMenu(menuoptions)
 # heartbeatinterval, initsuccess = initialise(p_email, p_password, p_pin, p_vin, p_abrp_token, p_abrp_carmodel, p_WeatherApiKey,
                          # p_WeatherProvider, p_homelocation, p_forcepollinterval, p_charginginterval,
                          # p_heartbeatinterval)
-
+logging.info("starting test run")
 bluelink = BlueLink(p_email, p_password, p_pin, p_vin, p_abrp_carmodel, p_abrp_token, p_WeatherApiKey, p_WeatherProvider, p_homelocation)
 bluelink.initialise(p_forcepollinterval, p_charginginterval)
 
@@ -30,8 +30,10 @@ if bluelink.initSuccess:
             print(i) 
         #try:
         x = int(input("Please Select:"))
-        print(x)
-        if x == 0: exit()
+        #print(x)
+        if x == 0: 
+             logging.info("stopping test run")
+             exit()
         if x == 1: bluelink.vehicle.api_set_lock('on')
         if x == 2: bluelink.vehicle.api_set_lock('off')
         if x == 3: print(bluelink.vehicle.api_get_status(False))
@@ -78,7 +80,7 @@ if bluelink.initSuccess:
             print(bluelink.vehicle.api_set_chargelimits(invoer.split()[0], invoer.split()[1]))
 
         if x == 10: print(json.dumps(bluelink.vehicle.api_get_chargeschedule(),indent=4))
-        if x == 11: print(bluelink.vehicle.api_get_services())
+        if x == 11: print(json.dumps(bluelink.vehicle.api_get_services(),indent=4))
         if x == 12: print(str(bluelink.pollcar(True)))
         if x == 13:
             print( "feature removed")
