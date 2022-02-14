@@ -3,7 +3,7 @@
 #           Author:     pierre levres, 2020
 #
 """
-<plugin key="bluvo" name="Kia UVO and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="2.0.0">
+<plugin key="bluvo" name="Kia UVO and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="2.0.1">
     <description>
         <h2>BlUvo Plugin</h2>
         A plugin for Kia UVO and Hyundai Bluelink EV's (generally MY2020 and beyond). Use at own risk!

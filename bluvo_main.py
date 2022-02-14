@@ -140,6 +140,8 @@ class BlueLink:
         googlelocation = ''
         #try:
         self.pollcounter += 1
+        if self.stampProvider.stampValid == False:
+            self.vehicle.stamp = self.stampProvider.getStamp()
         carstatus = self.vehicle.api_get_status(False)
         break_point = "got status"
         if carstatus is not False:

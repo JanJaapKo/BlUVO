@@ -14,7 +14,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)-8s - %(filename)-18s - %(
 
 menuoptions = ['0 exit',"1 Lock", "2 Unlock", "3 Status", "4 Status formatted", "5 Status refresh", "6 location", "7 loop status",
                "8 Navigate to", '9 set Charge Limits', '10 get charge schedule', '11 get services', '12 poll car',  '13 get stamps', '14 odometer', '15 get park location',
-               '16 get user info', '17 get monthly report', '18 get monthly report lists']
+               '16 get user info', '17 get monthly report', '18 get monthly report lists', '19 poll car without forced', '20 poll car with forced']
 mymenu = consolemenu.SelectionMenu(menuoptions)
 # heartbeatinterval, initsuccess = initialise(p_email, p_password, p_pin, p_vin, p_abrp_token, p_abrp_carmodel, p_WeatherApiKey,
                          # p_WeatherProvider, p_homelocation, p_forcepollinterval, p_charginginterval,
@@ -89,6 +89,8 @@ if bluelink.initSuccess:
         if x == 16: print(json.dumps(bluelink.vehicle.api_get_userinfo(), indent=4))
         if x == 17: print(json.dumps(bluelink.vehicle.api_get_monthlyreport(2021,5), indent=4))
         if x == 18: print(json.dumps(bluelink.vehicle.api_get_monthlyreportlist(), indent=4))
+        if x == 19: print(json.dumps(bluelink.pollcar(False), indent=4))
+        if x == 20: print(json.dumps(bluelink.pollcar(True), indent=4))
         input("Press Enter to continue...")
         # except (ValueError) as err:
             # print("error in menu keuze")
