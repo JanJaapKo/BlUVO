@@ -24,7 +24,7 @@ class brandAuth():
         self.__stamp__ = ''
         self.BaseHost = 'prd.eu-ccapi.' + self.car_brand + '.com:8080'
         self.BaseURL = 'https://' + self.BaseHost
-        self.timeout = 10
+        self.timeout = 5
         self.get_constants()
         return
     
@@ -167,7 +167,11 @@ class brandAuth():
             'Accept-Encoding': self.AcceptEncoding
         }
         session = requests.Session()
-        response = session.get(url, headers=headers)
+        try:
+            response = session.get(url, headers=headers, timeout=self.timeout)
+        except requests.exceptions.RequestException as exp:
+            self.api_error("RequestException: " + str(exp))
+            return False
         logging.debug("login legacy URL 1 "+url)
         if response.status_code != 200:
             self.api_error('NOK login legacy: NOK cookie for login. Error: ' + str(response.status_code) + response.text)
@@ -193,7 +197,11 @@ class brandAuth():
         logging.debug("login legacy data 2 "+str(data))
         url = self.BaseURL + '/api/v1/user/language'
         logging.debug("login legacy URL 2 "+url)
-        response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
+        try:
+            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
+        except requests.exceptions.RequestException as exp:
+            self.api_error("RequestException: " + str(exp))
+            return False
         if response.status_code >= 300:
             self.api_error('NOK login legacy: NOK set language for login. Error: ' + str(response.status_code) + response.text)
             return False
@@ -212,7 +220,11 @@ class brandAuth():
         logging.debug("login URL 3 "+url)
         logging.debug("login headers 3 "+str(headers))
         logging.debug("login data 3 "+str(data))
-        response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
+        try:
+            response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
+        except requests.exceptions.RequestException as exp:
+            self.api_error("RequestException: " + str(exp))
+            return False
         if response.status_code != 200:
             self.api_error('NOK login. Error: ' + str(response.status_code) + " " + response.text)
             return False
@@ -246,7 +258,11 @@ class brandAuth():
         logging.debug("login URL 4 "+url)
         logging.debug("login headers 4 "+str(headers))
         logging.debug("login data 4 "+str(data))
-        response = requests.post(url, data=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
+        try:
+            response = requests.post(url, data=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
+        except requests.exceptions.RequestException as exp:
+            self.api_error("RequestException: " + str(exp))
+            return False
         if response.status_code != 200:
             self.api_error('NOK token. Error: ' + str(response.status_code) + " " + response.text)
             return False
@@ -278,7 +294,11 @@ class brandAuth():
         logging.debug("login URL 5 "+url)
         logging.debug("login headers 5 "+str(headers))
         logging.debug("login data 5 "+str(data))
-        response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
+        try:
+            response = requests.post(url, json=data, headers=headers, timeout=self.timeout)
+        except requests.exceptions.RequestException as exp:
+            self.api_error("RequestException: " + str(exp))
+            return False
         if response.status_code != 200:
             self.api_error('NOK login: NOK deviceID. Error: ' + str(response.status_code) + " " + response.text)
             logging.debug('the rescode = ' + response.json()["resCode"])
@@ -317,7 +337,11 @@ class brandAuth():
             'Stamp': self.__stamp__,
             'ccsp-device-id': self.deviceId
         }
-        response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
+        try:
+            response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
+        except requests.exceptions.RequestException as exp:
+            self.api_error("RequestException: " + str(exp))
+            return False
         logging.debug("login URL 6 "+url)
         logging.debug("login headers 6 "+str(headers))
         if response.status_code != 200:
@@ -355,7 +379,11 @@ class brandAuth():
                 }
                 logging.debug("login URL 7 "+url)
                 logging.debug("login headers 7 "+str(headers))
-                response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
+                try:
+                    response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
+                except requests.exceptions.RequestException as exp:
+                    self.api_error("RequestException: " + str(exp))
+                    return False
                 try:
                     response = json.loads(response.text)
                     response = response['resMsg']['vinInfo'][0]['basic']
