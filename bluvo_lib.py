@@ -793,7 +793,7 @@ class vehicleInteraction(brandAuth):
             try:
                 response = json.loads(response.text)
                 # a refresh==True returns a short list, a refresh==False returns a long list. If raw is true, return the entire string
-                logging.debug(response['resMsg'])
+                logging.debug("get status response: " + str(response['resMsg']))
                 if raw: return response['resMsg']
                 if not refresh: response = response['resMsg']['vehicleStatusInfo']['vehicleStatus']
                 return response

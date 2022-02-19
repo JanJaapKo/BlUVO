@@ -21,7 +21,7 @@ class postOffice():
             self.__appId = "-" + appId + ".v2"
         self.log_info = { 'class': 'postOffice'}
         self.file_expiry_days = 6
-        self.__stamp_expiry_time = datetime.timedelta(seconds=15*60) #time the stamps are valid in seconds
+        self.__stamp_expiry_time = datetime.timedelta(seconds=10*60) #time the stamps are valid in seconds
 
     @property
     def use_local(self):
@@ -47,7 +47,7 @@ class postOffice():
 
     def getStampListFromUrl(self, stampsFile = "https://raw.githubusercontent.com/neoPix/bluelinky-stamps/master/"):
         url = stampsFile + self.carbrand + self.__appId + ".json"
-        logging.info("PostOffice: getStampFromUrl: reading from URL: " + url)
+        logging.debug("PostOffice: getStampFromUrl: reading from URL: " + url)
         body = requests.get(url)
         logging.debug("PostOffice: received response: {0}".format(body))
         stampStruct = body.json()
@@ -56,7 +56,7 @@ class postOffice():
         self.__frequency = stampStruct["frequency"] #interval between stamps in msec
         self.__stampsGenerated = datetime.datetime.fromisoformat(stampsGenerated)
         self.getOffset()
-        logging.debug("PostOffice: received stamps list, length: {0} generated at {1} with an interval of {2} seconds".format(len(self.stampList),self.__stampsGenerated, self.__frequency/1000))
+        logging.info("PostOffice: received stamps list, length: {0} generated at {1} with an interval of {2} seconds".format(len(self.stampList),self.__stampsGenerated, self.__frequency/1000))
         self.file_expiry_date = self.__stampsGenerated + datetime.timedelta(seconds=(self.__frequency/1000*len(self.stampList)))
         return True
     
@@ -64,12 +64,13 @@ class postOffice():
         #get a stamp from the list
         self.checkStampValid()
         self.stamp_expiry_DT = datetime.datetime.now() + self.__stamp_expiry_time
+        self.__stampValid = True
         logging.info('PostOffice: handig out a new stamp, number ' + str(self.__activeStamp) + ' valid until ' + self.stamp_expiry_DT.strftime("%Y-%m-%d %H:%M:%S"))
         return self.stampList[self.__activeStamp].rstrip("\n")
         
     def checkStampValid(self):
         #self.getOffset()
-        logging.info("PostOffice: we have {0} as active stamp of {1}, valid = {2}, the list expires at {3}".format(self.__activeStamp,len(self.stampList),self.__stampValid,self.file_expiry_date.strftime("%Y-%m-%d %H:%M:%S")) )
+        logging.info("PostOffice: we have stamp {0} of {1} active, valid = {2} until {4}, the list expires at {3}".format(self.__activeStamp,len(self.stampList),self.__stampValid,self.file_expiry_date.strftime("%Y-%m-%d %H:%M:%S"),self.stamp_expiry_DT.strftime("%Y-%m-%d %H:%M:%S")) )
         if self.stampFileValid == False:
             #need to get new stamp list
             if self.__use_local__:
@@ -77,7 +78,7 @@ class postOffice():
             else:
                 self.getStampListFromUrl()
             logging.debug("PostOffice: we have " + str(len(self.stampList)) + " stamps, using " + str(self.__activeStamp) + " the list expires at " + self.file_expiry_date.strftime("%Y-%m-%d %H:%M:%S"))
-        if self.stamp_expiry_DT < datetime.datetime.now():
+        if self.stamp_expiry_DT <= datetime.datetime.now():
             self.__stampValid = False
         else:
             self.__stampValid = True
@@ -87,7 +88,7 @@ class postOffice():
     def stampValid(self):
         if self.stamp_expiry_DT <= datetime.datetime.now():
             self.__stampValid = False
-        logging.debug("PostOffice: self.__stampValid = " + str(self.__stampValid) + "; self.stamp_expiry_DT ("+str(self.stamp_expiry_DT)+") <= datetime.datetime.now() ("+str(datetime.datetime.now())+")")
+        logging.debug("PostOffice: stampValid? self.__stampValid = " + str(self.__stampValid) + "; self.stamp_expiry_DT ("+str(self.stamp_expiry_DT)+") <= datetime.datetime.now() ("+str(datetime.datetime.now())+")")
         return self.__stampValid
     
     @stampValid.setter
