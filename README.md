@@ -21,7 +21,7 @@ sudo pip3 install crypto
 1. Clone repository into your domoticz plugins folder
 ```
 cd domoticz/plugins
-git clone git@github.com:JanJaapKo/BlUVO
+git clone https://github.com/JanJaapKo/BlUVO
 ```
 to update:
 ```
