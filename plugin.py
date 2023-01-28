@@ -83,10 +83,18 @@
 </plugin>
 """
 
-import Domoticz, logging
+import logging
 import random
 from datetime import datetime
 from bluvo_main import BlueLink
+try:
+    #import DomoticzEx as Domoticz
+    import Domoticz as Domoticz
+except ImportError:
+    #import fake domoticz modules and setup fake domoticz instance to enable unit testing
+    from fakeDomoticz import *
+    from fakeDomoticz import Domoticz
+    Domoticz = Domoticz()
 
 class BasePlugin:
 
