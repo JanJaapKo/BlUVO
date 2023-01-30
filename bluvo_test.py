@@ -12,41 +12,48 @@ from params import *  # p_parameters are read
 logging.basicConfig(format='%(asctime)s - %(levelname)-8s - %(filename)-18s - %(message)s', filename='bluvo_test.log',
                     level=logging.DEBUG)
 
-menuoptions = ['0 exit',"1 Lock", "2 Unlock", "3 Status", "4 Status formatted", "5 Status refresh", "6 location", "7 loop status",
-               "8 Navigate to", '9 set Charge Limits', '10 get charge schedule', '11 get services', '12 poll car',  '13 get stamps', '14 odometer', '15 get park location',
-               '16 get user info', '17 get monthly report', '18 get monthly report lists', '19 poll car without forced', '20 poll car with forced']
+menuoptions = ['0 exit', '1 log in', '2 initialise', '3 get stamp',
+                "11 Lock", "12 Unlock", "13 Status", "14 Status formatted", "15 Status refresh", "16 location", "17 loop status",
+               "18 Navigate to", '19 set Charge Limits', '20 get charge schedule', '21 get services', '22 poll car',  '23 get stamps', '24 odometer', '25 get park location',
+               '26 get user info', '27 get monthly report', '28 get monthly report lists', '29 poll car without forced', '30 poll car with forced']
 mymenu = consolemenu.SelectionMenu(menuoptions)
 # heartbeatinterval, initsuccess = initialise(p_email, p_password, p_pin, p_vin, p_abrp_token, p_abrp_carmodel, p_WeatherApiKey,
                          # p_WeatherProvider, p_homelocation, p_forcepollinterval, p_charginginterval,
                          # p_heartbeatinterval)
 logging.info("starting test run")
-bluelink = BlueLink(p_email, p_password, p_pin, p_vin, p_abrp_carmodel, p_abrp_token, p_WeatherApiKey, p_WeatherProvider, p_homelocation)
-bluelink.initialise(p_forcepollinterval, p_charginginterval)
-
-if bluelink.initSuccess:
+bluelink = None
+if True:
+#if bluelink.initSuccess:
     #stampie = postOffice("hyundai", False)
     while True:
         for i in menuoptions:
             print(i) 
         #try:
         x = int(input("Please Select:"))
-        #print(x)
+        logging.debug("menu option: "+str(x))
         if x == 0: 
              logging.info("stopping test run")
              exit()
-        if x == 1: bluelink.vehicle.api_set_lock('on')
-        if x == 2: bluelink.vehicle.api_set_lock('off')
-        if x == 3: print(bluelink.vehicle.api_get_status(False))
-        if x == 4: 
+        if x == 1:
+            bluelink = BlueLink(p_email, p_password, p_pin, p_vin, p_abrp_carmodel, p_abrp_token, p_WeatherApiKey, p_WeatherProvider, p_homelocation)
+        if x == 2:
+            bluelink.initialise(p_forcepollinterval, p_charginginterval)
+        if x == 3:  
+            bluelink.vehicle.stamp = bluelink.stampProvider.getStamp()
+            print(bluelink.vehicle.stamp)
+        if x == 11: bluelink.vehicle.api_set_lock('on')
+        if x == 12: bluelink.vehicle.api_set_lock('off')
+        if x == 13: print(bluelink.vehicle.api_get_status(False))
+        if x == 14: 
             status_record = bluelink.vehicle.api_get_status(False)
             print(json.dumps(status_record, sort_keys = True, indent=4))
-        if x == 5: print(json.dumps(bluelink.vehicle.api_get_status(True), sort_keys = True, indent=4))
-        if x == 6:
+        if x == 15: print(json.dumps(bluelink.vehicle.api_get_status(True), sort_keys = True, indent=4))
+        if x == 16:
             locatie = bluelink.vehicle.api_get_location()
             if locatie:
                 locatie = locatie['gpsDetail']['coord']
                 print(georeverse(locatie['lat'], locatie['lon']))
-        if x == 7:
+        if x == 17:
             while True:
                 # read semaphore flag
                 try:
@@ -73,24 +80,24 @@ if bluelink.initSuccess:
                     print("soc12v ", parsedStatus['charge12V'], "status 12V", parsedStatus['status12V'])
                     print("=============")
                 time.sleep(bluelink.heartbeatinterval)
-        if x == 8: print(bluelink.vehicle.api_set_navigation(geolookup(input("Press Enter address to navigate to..."))))
-        if x == 9:
+        if x == 18: print(bluelink.vehicle.api_set_navigation(geolookup(input("Press Enter address to navigate to..."))))
+        if x == 19:
             invoer = input("Enter maximum for fast and slow charging (space or comma or semicolon or colon seperated)")
             for delim in ',;:': invoer = invoer.replace(delim, ' ')
             print(bluelink.vehicle.api_set_chargelimits(invoer.split()[0], invoer.split()[1]))
 
-        if x == 10: print(json.dumps(bluelink.vehicle.api_get_chargeschedule(),indent=4))
-        if x == 11: print(json.dumps(bluelink.vehicle.api_get_services(),indent=4))
-        if x == 12: print(str(bluelink.pollcar(True)))
-        if x == 13:
+        if x == 20: print(json.dumps(bluelink.vehicle.api_get_chargeschedule(),indent=4))
+        if x == 21: print(json.dumps(bluelink.vehicle.api_get_services(),indent=4))
+        if x == 22: print(str(bluelink.pollcar(True)))
+        if x == 23:
             print( "feature removed")
-        if x == 14: print(bluelink.vehicle.api_get_odometer())
-        if x == 15: print(json.dumps(bluelink.vehicle.api_get_parklocation(), indent=4))
-        if x == 16: print(json.dumps(bluelink.vehicle.api_get_userinfo(), indent=4))
-        if x == 17: print(json.dumps(bluelink.vehicle.api_get_monthlyreport(2021,5), indent=4))
-        if x == 18: print(json.dumps(bluelink.vehicle.api_get_monthlyreportlist(), indent=4))
-        if x == 19: print(json.dumps(bluelink.pollcar(False), indent=4))
-        if x == 20: print(json.dumps(bluelink.pollcar(True), indent=4))
+        if x == 24: print(bluelink.vehicle.api_get_odometer())
+        if x == 25: print(json.dumps(bluelink.vehicle.api_get_parklocation(), indent=4))
+        if x == 26: print(json.dumps(bluelink.vehicle.api_get_userinfo(), indent=4))
+        if x == 27: print(json.dumps(bluelink.vehicle.api_get_monthlyreport(2021,5), indent=4))
+        if x == 28: print(json.dumps(bluelink.vehicle.api_get_monthlyreportlist(), indent=4))
+        if x == 29: print(json.dumps(bluelink.pollcar(False), indent=4))
+        if x == 30: print(json.dumps(bluelink.pollcar(True), indent=4))
         input("Press Enter to continue...")
         # except (ValueError) as err:
             # print("error in menu keuze")

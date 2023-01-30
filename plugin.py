@@ -3,7 +3,7 @@
 #           Author:     pierre levres, 2020
 #
 """
-<plugin key="bluvo" name="Kia UVO and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="2.0.1">
+<plugin key="bluvo" name="Kia UVO and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="2.1.0">
     <description>
         <h2>BlUvo Plugin</h2>
         A plugin for Kia UVO and Hyundai Bluelink EV's (generally MY2020 and beyond). Use at own risk!
@@ -113,19 +113,6 @@ class BasePlugin:
             else: logging.basicConfig(format='%(asctime)s - %(levelname)-8s - %(filename)-18s - %(message)s', filename='bluvo.log', level=logging.ERROR)
 
         logging.info('started plugin with Domoticz.Heartbeat = {0}'.format(Domoticz.Heartbeat()))
-        '''
-        # add custom images
-        CLOSED_ICON = "Closed"
-        CHARGING_ICON = "Charging"
-        AFSTAND_ICON = "Distance"
-        # Dry Logo
-        if self.CLOSED_ICON in Images:  Domoticz.Debug("ID: " + str(Images[self.CLOSED_ICON].ID))
-        else:                           Domoticz.Image(CLOSED_ICON+".zip").Create()
-        if self.CHARGING_ICON in Images:Domoticz.Debug("ID: " + str(Images[self.CHARGING_ICON].ID))
-        else:                           Domoticz.Image(CHARGING_ICON+".zip").Create()
-        if self.AFSTAND_ICON in Images: Domoticz.Debug("ID: " + str(Images[self.AFSTAND_ICON].ID))
-        else:                           Domoticz.Image(AFSTAND_ICON+".zip").Create()
-        '''
         if "Maps icon" not in Images:
             Domoticz.Image("Maps icon.zip").Create()
         if (1 not in Devices):

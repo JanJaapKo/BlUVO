@@ -18,153 +18,167 @@ class brandAuth():
     controlTokenExpiresAt = None
     def __init__(self, car_brand):
         self.car_brand = car_brand
-        self.ServiceId = ''
-        self.BasicToken = ''
-        self.CcspApplicationId = ''
-        self.__stamp__ = ''
-        self.BaseHost = 'prd.eu-ccapi.' + self.car_brand + '.com:8080'
-        self.BaseURL = 'https://' + self.BaseHost
+        self.ServiceId = "" #clientId in bluelinky
+        self.BasicToken = ""
+        self.CcspApplicationId = ""
+        self.__stamp__ = ""
+        self.BaseHost = "prd.eu-ccapi." + self.car_brand + ".com:8080"
+        self.BaseURL = "https://" + self.BaseHost
         self.timeout = 5
         self.get_constants()
+ 
+        self.sessionUrl = self.BaseURL+"/api/v1/user/oauth2/authorize?response_type=code&state=test&client_id="+self.ServiceId+"&redirect_uri="+self.BaseURL+"/api/v1/user/oauth2/redirect"
+        self.loginUrl = self.BaseURL+"/api/v1/user/signin"
+        self.languageUrl = self.BaseURL+"/api/v1/user/language"
+        self.redirectUri = self.BaseURL+"/api/v1/user/oauth2/redirect"
+        self.tokenUrl = self.BaseURL+"/api/v1/user/oauth2/token"
+        self.integrationUrl = self.BaseURL+"/api/v1/user/integrationinfo"
+        self.silentSignInUrl = self.BaseURL+"/api/v1/user/silentsignin"
+
         return
     
     @property
     def stamp(self):
         return self.__stamp__
+
     @stamp.setter
     def stamp(self, stamp):
         self.__stamp__ = stamp
         
     def api_error(self, message):
-        logger = logging.getLogger('root')
+        logger = logging.getLogger("root")
         logger.error(message)
         print(message)
 
+        # const clientId = "6d477c38-3ca4-4cf3-9557-2a1929a94654";
+        # const appId = "014d2225-8495-4735-812d-2616334fd15d";
+
+
     def get_constants(self):
-        if self.car_brand == 'kia':
-            self.ServiceId = 'fdc85c00-0a2f-4c64-bcb4-2cfb1500730a'
-            self.BasicToken = 'Basic ZmRjODVjMDAtMGEyZi00YzY0LWJjYjQtMmNmYjE1MDA3MzBhOnNlY3JldA=='
-            self.CcspApplicationId = '693a33fa-c117-43f2-ae3b-61a02d24f417'
-        elif self.car_brand == 'hyundai':
-            self.ServiceId = '6d477c38-3ca4-4cf3-9557-2a1929a94654'
-            self.BasicToken = 'Basic NmQ0NzdjMzgtM2NhNC00Y2YzLTk1NTctMmExOTI5YTk0NjU0OktVeTQ5WHhQekxwTHVvSzB4aEJDNzdXNlZYaG10UVI5aVFobUlGampvWTRJcHhzVg=='
-            self.CcspApplicationId = '014d2225-8495-4735-812d-2616334fd15d'
-            #self.CcspApplicationId = '99cfff84-f4e2-4be8-a5ed-e5b755eb6581'
+        if self.car_brand == "kia":
+            self.ServiceId = "fdc85c00-0a2f-4c64-bcb4-2cfb1500730a"
+            self.BasicToken = "Basic ZmRjODVjMDAtMGEyZi00YzY0LWJjYjQtMmNmYjE1MDA3MzBhOnNlY3JldA=="
+            self.CcspApplicationId = "693a33fa-c117-43f2-ae3b-61a02d24f417"
+        elif self.car_brand == "hyundai":
+            self.ServiceId = "6d477c38-3ca4-4cf3-9557-2a1929a94654" #clientId in bluelinky
+            self.BasicToken = "Basic NmQ0NzdjMzgtM2NhNC00Y2YzLTk1NTctMmExOTI5YTk0NjU0OktVeTQ5WHhQekxwTHVvSzB4aEJDNzdXNlZYaG10UVI5aVFobUlGampvWTRJcHhzVg=="
+            self.CcspApplicationId = "014d2225-8495-4735-812d-2616334fd15d"
         else:
-            self.api_error('Carbrand not OK.')
+            self.api_error("Carbrand not OK.")
             return False
 
-        self.UserAgentPreLogon = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_1 like Mac OS X) AppleWebKit/604.3.5 (KHTML, like Gecko) Version/11.0 Mobile/15B92 Safari/604.1'
-        self.UserAgent = 'UVO_REL/1.5.1 (iPhone; iOS 14.0.1; Scale/2.00)'
-        self.UserAgent = 'UVO_Store/1.5.9 (iPhone; iOS 14.4; Scale/3.00)'
-        self.Accept = '*/*'
-        self.AcceptLanguageShort = 'nl-nl'
-        self.AcceptLanguage = 'nl-NL;q=1, en-NL;q=0.9'
-        self.AcceptEncoding = 'gzip, deflate, br'
-        self.ContentType = 'application/x-www-form-urlencoded;charset=UTF-8'
-        self.ContentJSON = 'application/json;charset=UTF-8'
-        self.Connection = 'keep-alive'
-        self.deviceId = ''
+        self.UserAgentPreLogon = "Mozilla/5.0 (iPhone; CPU iPhone OS 11_1 like Mac OS X) AppleWebKit/604.3.5 (KHTML, like Gecko) Version/11.0 Mobile/15B92 Safari/604.1"
+        self.UserAgent = "UVO_REL/1.5.1 (iPhone; iOS 14.0.1; Scale/2.00)"
+        self.UserAgent = "UVO_Store/1.5.9 (iPhone; iOS 14.4; Scale/3.00)"
+        self.USER_AGENT_OK_HTTP: str = "okhttp/3.12.0"
+        self.Accept = "*/*"
+        self.AcceptLanguageShort = "nl-nl"
+        self.AcceptLanguage = "nl-NL;q=1, en-NL;q=0.9"
+        self.AcceptEncoding = "gzip, deflate, br"
+        self.ContentType = "application/x-www-form-urlencoded;charset=UTF-8"
+        self.ContentJSON = "application/json;charset=UTF-8"
+        self.Connection = "Keep-Alive"
+        self.deviceId = ""
         return True
 
     def check_control_token(self):
         if self.refresh_access_token():
             logging.debug('accesstoken OK')
             if self.controlTokenExpiresAt is not None:
-                logging.debug('Check pin expiry on %s and now it is %s', self.controlTokenExpiresAt, datetime.now())
+                logging.debug("Check pin expiry on %s and now it is %s", self.controlTokenExpiresAt, datetime.now())
                 if self.controlToken is None or datetime.now() > self.controlTokenExpiresAt:
-                    logging.debug('control token expired at %s, about to renew', self.controlTokenExpiresAt)
+                    logging.debug("control token expired at %s, about to renew", self.controlTokenExpiresAt)
                     return self.enter_pin()
         return True
 
     def refresh_access_token(self):
         if self.refreshToken is None:
-            self.api_error('Need refresh token to refresh access token. Use login()')
+            self.api_error("Need refresh token to refresh access token. Use login()")
             return False
-        logging.debug('access token expires at %s', self.accessTokenExpiresAt)
+        logging.debug("access token expires at %s", self.accessTokenExpiresAt)
         if (datetime.now() - self.accessTokenExpiresAt).total_seconds() > -3600: #one hour beforehand refresh the access token
-            logging.debug('need to refresh access token')
-            url = self.BaseURL + '/api/v1/user/oauth2/token'
+            logging.debug("need to refresh access token")
+            url = self.BaseURL + "/api/v1/user/oauth2/token"
             headers = {
-                'Host': self.BaseHost,
-                'Content-type': self.ContentType,
-                'Accept-Encoding': self.AcceptEncoding,
-                'Connection': self.Connection,
-                'Accept': self.Accept,
-                'User-Agent': self.UserAgent,
-                'Accept-Language': self.AcceptLanguage,
-                'Stamp': self.__stamp__,
-                'Authorization': self.BasicToken
+                "Host": self.BaseHost,
+                "Content-type": self.ContentType,
+                "Accept-Encoding": self.AcceptEncoding,
+                "Connection": self.Connection,
+                "Accept": self.Accept,
+                "User-Agent": self.UserAgent,
+                "Accept-Language": self.AcceptLanguage,
+                "Stamp": self.__stamp__,
+                "Authorization": self.BasicToken
                 }
             logging.debug(headers)
-            data = 'redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect&refresh_token=' + self.refreshToken + '&grant_type=refresh_token'
+            data = "redirect_uri=" + self.BaseURL + "/api/v1/user/oauth2/redirect&refresh_token=" + self.refreshToken + "&grant_type=refresh_token"
             response = requests.post(url, data=data, headers=headers, timeout=self.timeout)
-            logging.debug('refreshed access token %s',response)
-            logging.debug('response text %s',json.loads(response.text))
+            logging.debug("refreshed access token %s",response)
+            logging.debug("response text %s",json.loads(response.text))
             if response.status_code == 200:
                 try:
                     response = json.loads(response.text)
-                    self.accessToken = 'Bearer ' + response['access_token']
-                    self.accessTokenExpiresAt = datetime.now() + timedelta(seconds=response['expires_in'])
-                    logging.info('refreshed access token %s expires in %s seconds at %s',
-                                 self.accessToken[:40], response['expires_in'], self.accessTokenExpiresAt)
+                    self.accessToken = "Bearer " + response["access_token"]
+                    self.accessTokenExpiresAt = datetime.now() + timedelta(seconds=response["expires_in"])
+                    logging.info("refreshed access token %s expires in %s seconds at %s",
+                                 self.accessToken[:40], response["expires_in"], self.accessTokenExpiresAt)
 
                     return True
                 except:
-                    self.api_error('Refresh token failed: ' + response)
+                    self.api_error("Refresh token failed: " + response)
                     return False
             else:
-                self.api_error('Refresh token failed: ' + str(response.status_code) + response.text)
+                self.api_error("Refresh token failed: " + str(response.status_code) + response.text)
                 return False
         return True
 
     def enter_pin(self):
-        url = self.BaseURL + '/api/v1/user/pin'
+        url = self.BaseURL + "/api/v1/user/pin"
         headers = {
-            'Host': self.BaseHost,
-            'Content-Type': self.ContentType,
-            'Accept-Encoding': self.AcceptEncoding,
-            'Connection': self.Connection,
-            'Accept': self.Accept,
-            'User-Agent': self.UserAgent,
-            'Accept-Language': self.AcceptLanguage,
-            'Stamp': self.__stamp__,
-            'Authorization': self.accessToken
+            "Host": self.BaseHost,
+            "Content-Type": self.ContentType,
+            "Accept-Encoding": self.AcceptEncoding,
+            "Connection": self.Connection,
+            "Accept": self.Accept,
+            "User-Agent": self.UserAgent,
+            "Accept-Language": self.AcceptLanguage,
+            "Stamp": self.__stamp__,
+            "Authorization": self.accessToken
         }
         data = {"deviceId": self.deviceId, "pin": self.pin}
         response = requests.put(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
         if response.status_code == 200:
             try:
                 response = json.loads(response.text)
-                self.controlToken = 'Bearer ' + response['controlToken']
-                self.controlTokenExpiresAt = datetime.now() + timedelta(seconds=response['expiresTime'])
+                self.controlToken = "Bearer " + response["controlToken"]
+                self.controlTokenExpiresAt = datetime.now() + timedelta(seconds=response["expiresTime"])
                 logging.debug("Pin set, new control token %s, expires in %s seconds at %s",
-                              self.controlToken[:40], response['expiresTime'], self.controlTokenExpiresAt)
+                              self.controlToken[:40], response["expiresTime"], self.controlTokenExpiresAt)
                 return True
             except:
-                self.api_error('NOK pin. Error: ' + response)
+                self.api_error("NOK pin. Error: " + response)
                 return False
         else:
-            self.api_error('NOK pin. Error: ' + str(response.status_code) + response.text)
+            self.api_error("NOK pin. Error: " + str(response.status_code) + response.text)
             return False
 
     def login_legacy(self, email, password, pin, vin):
         self.pin = pin
         url = "no URL set yet"
-        logging.info('entering login legacy, car brand:  %s, email: %s', self.car_brand, email)
+        logging.info("entering login legacy, car brand:  %s, email: %s", self.car_brand, email)
         #self.get_constants()
-        logging.debug('login legacy: constants ServiceId %s BasicToken %s CcspApplicationId %s BaseHost %s BaseURL %s stamp %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.__stamp__)
+        logging.debug("login legacy: constants ServiceId %s BasicToken %s CcspApplicationId %s BaseHost %s BaseURL %s stamp %s", self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.__stamp__)
         self.controlToken = self.accessToken = self.refreshToken = None
         self.controlTokenExpiresAt = self.accessTokenExpiresAt = datetime(1970, 1, 1, 0, 0, 0)
 
         #try:
         # ---step 1 cookies----------------------------------
-        url = self.BaseURL + '/api/v1/user/oauth2/authorize?response_type=code&state=test&client_id=' + self.ServiceId + '&redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect'
+        url = self.BaseURL + "/api/v1/user/oauth2/authorize?response_type=code&state=test&client_id=" + self.ServiceId + "&redirect_uri=" + self.BaseURL + "/api/v1/user/oauth2/redirect"
         headers = {
-            'Connection': self.Connection,
-            'Accept': self.Accept,
-            'User-Agent': self.UserAgentPreLogon,
-            'Accept-Encoding': self.AcceptEncoding
+            "Connection": self.Connection,
+            "Accept": self.Accept,
+            "User-Agent": self.UserAgentPreLogon,
+            "Accept-Encoding": self.AcceptEncoding
         }
         session = requests.Session()
         try:
@@ -174,7 +188,7 @@ class brandAuth():
             return False
         logging.debug("login legacy URL 1 "+url)
         if response.status_code != 200:
-            self.api_error('NOK login legacy: NOK cookie for login. Error: ' + str(response.status_code) + response.text)
+            self.api_error("NOK login legacy: NOK cookie for login. Error: " + str(response.status_code) + response.text)
             return False
 
         self.cookies = session.cookies.get_dict()
@@ -187,15 +201,15 @@ class brandAuth():
 
         # ---step 2 language----------------------------------
         headers = {
-            'Content-Type': 'text/plain',
-            'Connection': self.Connection,
-            'Accept': self.Accept,
-            'User-Agent': self.UserAgentPreLogon
+            "Content-Type": "text/plain",
+            "Connection": self.Connection,
+            "Accept": self.Accept,
+            "User-Agent": self.UserAgentPreLogon
         }
         data = {"lang": "en"}
         logging.debug("login legacy headers 2 "+str(headers))
         logging.debug("login legacy data 2 "+str(data))
-        url = self.BaseURL + '/api/v1/user/language'
+        url = self.BaseURL + "/api/v1/user/language"
         logging.debug("login legacy URL 2 "+url)
         try:
             response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
@@ -203,18 +217,18 @@ class brandAuth():
             self.api_error("RequestException: " + str(exp))
             return False
         if response.status_code >= 300:
-            self.api_error('NOK login legacy: NOK set language for login. Error: ' + str(response.status_code) + response.text)
+            self.api_error("NOK login legacy: NOK set language for login. Error: " + str(response.status_code) + response.text)
             return False
         else:
-            logging.debug('login legacy language set OK')
+            logging.debug("login legacy language set OK")
 
         # --- step 3 signin----------------------------------
-        url = self.BaseURL + '/api/v1/user/signin'
+        url = self.BaseURL + "/api/v1/user/signin"
         headers = {
-            'Content-Type': self.ContentJSON,
-            'User-Agent': self.UserAgent,
-            'Accept': self.Accept,
-            'Connection': self.Connection
+            "Content-Type": self.ContentJSON,
+            "User-Agent": self.UserAgent,
+            "Accept": self.Accept,
+            "Connection": self.Connection
         }
         data = {"email": email, "password": password}
         logging.debug("login URL 3 "+url)
@@ -226,35 +240,35 @@ class brandAuth():
             self.api_error("RequestException: " + str(exp))
             return False
         if response.status_code != 200:
-            self.api_error('NOK login. Error: ' + str(response.status_code) + " " + response.text)
+            self.api_error("NOK login. Error: " + str(response.status_code) + " " + response.text)
             return False
         try:
             response = json.loads(response.text)
-            response = response['redirectUrl']
+            response = response["redirectUrl"]
             parsed = urlparse.urlparse(response)
-            authcode = ''.join(parse_qs(parsed.query)['code'])
+            authcode = "".join(parse_qs(parsed.query)["code"])
             logging.info("authCode %s", authcode)
         except:
-            self.api_error('NOK login. Error in parsing /signing request ' + response)
+            self.api_error("NOK login. Error in parsing /signing request " + response)
             return False
 
         # ---step 4 get accesstoken----------------------------------
-        url = self.BaseURL + '/api/v1/user/oauth2/token'
+        url = self.BaseURL + "/api/v1/user/oauth2/token"
         headers = {
-            'ccsp-service-id': self.ServiceId,
-            'Host': self.BaseHost,
-            'Content-Type': self.ContentType,
-            'Accept-Encoding': self.AcceptEncoding,
-            'Connection': self.Connection,
-            'Accept': self.Accept,
-            'User-Agent': self.UserAgent,
-            'Accept-Language': self.AcceptLanguage,
-            'ccsp-application-id': self.CcspApplicationId,
-            'Stamp': self.__stamp__,
-            'Authorization': self.BasicToken
+            "ccsp-service-id": self.ServiceId,
+            "Host": self.BaseHost,
+            "Content-Type": self.ContentType,
+            "Accept-Encoding": self.AcceptEncoding,
+            "Connection": self.Connection,
+            "Accept": self.Accept,
+            "User-Agent": self.UserAgent,
+            "Accept-Language": self.AcceptLanguage,
+            "ccsp-application-id": self.CcspApplicationId,
+            "Stamp": self.__stamp__,
+            "Authorization": self.BasicToken
         }
 
-        data = 'grant_type=authorization_code&redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect&code=' + authcode
+        data = "grant_type=authorization_code&redirect_uri=" + self.BaseURL + "/api/v1/user/oauth2/redirect&code=" + authcode
         logging.debug("login URL 4 "+url)
         logging.debug("login headers 4 "+str(headers))
         logging.debug("login data 4 "+str(data))
@@ -264,30 +278,30 @@ class brandAuth():
             self.api_error("RequestException: " + str(exp))
             return False
         if response.status_code != 200:
-            self.api_error('NOK token. Error: ' + str(response.status_code) + " " + response.text)
+            self.api_error("NOK token. Error: " + str(response.status_code) + " " + response.text)
             return False
         try:
             response = json.loads(response.text)
-            self.accessToken = 'Bearer ' + response['access_token']
-            self.refreshToken = response['refresh_token']
-            self.accessTokenExpiresAt = datetime.now() + timedelta(seconds=response['expires_in'])
+            self.accessToken = "Bearer " + response["access_token"]
+            self.refreshToken = response["refresh_token"]
+            self.accessTokenExpiresAt = datetime.now() + timedelta(seconds=response["expires_in"])
             logging.info("accesstoken %s, refrestoken %s expiresAt %s", self.accessToken, self.refreshToken, self.accessTokenExpiresAt)
         except:
-            self.api_error('NOK login. Error in parsing /token request: ' + response)
+            self.api_error("NOK login. Error in parsing /token request: " + response)
             return False
         # notification/register
 
         # # --- step 5 get deviceid----------------------------------
-        url = self.BaseURL + '/api/v1/spa/notifications/register'
+        url = self.BaseURL + "/api/v1/spa/notifications/register"
         headers = {
-            'ccsp-service-id': self.ServiceId,
-            'cssp-application-id': self.CcspApplicationId,
-            'Content-Type': self.ContentJSON,
-            'Host': self.BaseHost,
-            'Connection': self.Connection,
-            'Accept-Encoding': self.AcceptEncoding,
-            'Stamp': self.__stamp__,
-            'User-Agent': self.UserAgent}
+            "ccsp-service-id": self.ServiceId,
+            "cssp-application-id": self.CcspApplicationId,
+            "Content-Type": self.ContentJSON,
+            "Host": self.BaseHost,
+            "Connection": self.Connection,
+            "Accept-Encoding": self.AcceptEncoding,
+            "Stamp": self.__stamp__,
+            "User-Agent": self.UserAgent}
         # what to do with the cookie? account=Nj<snip>>689c3 
         # what to do with the right PushRegId
         data = {"pushRegId": "0827a4e6c94faa094fe20033ff7fdbbd3a7a789727546f2645a0f547f5db2a58", "pushType": "APNS", "uuid": str(uuid.uuid1())}
@@ -300,19 +314,19 @@ class brandAuth():
             self.api_error("RequestException: " + str(exp))
             return False
         if response.status_code != 200:
-            self.api_error('NOK login: NOK deviceID. Error: ' + str(response.status_code) + " " + response.text)
-            logging.debug('the rescode = ' + response.json()["resCode"])
+            self.api_error("NOK login: NOK deviceID. Error: " + str(response.status_code) + " " + response.text)
+            logging.debug("the rescode = " + response.json()["resCode"])
             if response.json()["resCode"] == "4017":
                 raise StampInvalid
             return False
         else:
-            logging.debug('OK login: OK deviceID, message: ' + str(response.status_code) + " " + response.text)
+            logging.debug("OK login: OK deviceID, message: " + str(response.status_code) + " " + response.text)
         try:
             response = json.loads(response.text)
-            self.deviceId = response['resMsg']['deviceId']
+            self.deviceId = response["resMsg"]["deviceId"]
             logging.info("deviceId %s", self.deviceId)
         except:
-            self.api_error('NOK login: Error in parsing /signing request: ' + response)
+            self.api_error("NOK login: Error in parsing /signing request: " + response)
             return False
 
         # user/profile    --> toevoegen bluelinky?
@@ -323,19 +337,19 @@ class brandAuth():
         # vehicles
 
         # ---step 6 get vehicles----------------------------------
-        url = self.BaseURL + '/api/v1/spa/vehicles'
+        url = self.BaseURL + "/api/v1/spa/vehicles"
         headers = {
-            'Host': self.BaseHost,
-            'Accept': self.Accept,
-            'Authorization': self.accessToken,
-            'ccsp-application-id': self.CcspApplicationId,
-            'Accept-Encoding': 'gzip',
-            'User-Agent': 'okhttp/3.10.0',
-            'offset': '2',
-            'Connection': self.Connection,
-            'Content-Type': self.ContentJSON,
-            'Stamp': self.__stamp__,
-            'ccsp-device-id': self.deviceId
+            "Host": self.BaseHost,
+            "Accept": self.Accept,
+            "Authorization": self.accessToken,
+            "ccsp-application-id": self.CcspApplicationId,
+            "Accept-Encoding": "gzip",
+            "User-Agent": "okhttp/3.10.0",
+            "offset": "2",
+            "Connection": self.Connection,
+            "Content-Type": self.ContentJSON,
+            "Stamp": self.__stamp__,
+            "ccsp-device-id": self.deviceId
         }
         try:
             response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
@@ -345,37 +359,37 @@ class brandAuth():
         logging.debug("login URL 6 "+url)
         logging.debug("login headers 6 "+str(headers))
         if response.status_code != 200:
-            self.api_error('NOK vehicles. Error: ' + str(response.status_code) + " " + response.text)
+            self.api_error("NOK vehicles. Error: " + str(response.status_code) + " " + response.text)
             return False
         try:
             response = json.loads(response.text)
             logging.debug("response %s", response)
-            vehicles = response['resMsg']['vehicles']
+            vehicles = response["resMsg"]["vehicles"]
             logging.debug("%s vehicles found", len(vehicles))
         except:
-            self.api_error('NOK login. Error in getting vehicles: ' + response)
+            self.api_error("NOK login. Error in getting vehicles: " + response)
             return False
         if len(vehicles) == 0:
-            self.api_error('NOK login. No vehicles found')
+            self.api_error("NOK login. No vehicles found")
             return False
         # ---get vehicleId----------------------------------
         self.vehicleId = None
         if len(vehicles) > 1:
             for vehicle in vehicles:
-                url = self.BaseURL + '/api/v1/spa/vehicles/' + vehicle['vehicleId'] + '/profile'
+                url = self.BaseURL + "/api/v1/spa/vehicles/" + vehicle["vehicleId"] + "/profile"
                 headers = {
-                    'Host': self.BaseHost,
-                    'Accept': self.Accept,
-                    'Authorization': self.accessToken,
-                    'ccsp-application-id': self.CcspApplicationId,
-                    'Accept-Language': self.AcceptLanguage,
-                    'Accept-Encoding': self.AcceptEncoding,
-                    'offset': '2',
-                    'User-Agent': self.UserAgent,
-                    'Connection': self.Connection,
-                    'Content-Type': self.ContentJSON,
-                    'Stamp': self.__stamp__,
-                    'ccsp-device-id': self.deviceId
+                    "Host": self.BaseHost,
+                    "Accept": self.Accept,
+                    "Authorization": self.accessToken,
+                    "ccsp-application-id": self.CcspApplicationId,
+                    "Accept-Language": self.AcceptLanguage,
+                    "Accept-Encoding": self.AcceptEncoding,
+                    "offset": "2",
+                    "User-Agent": self.UserAgent,
+                    "Connection": self.Connection,
+                    "Content-Type": self.ContentJSON,
+                    "Stamp": self.__stamp__,
+                    "ccsp-device-id": self.deviceId
                 }
                 logging.debug("login URL 7 "+url)
                 logging.debug("login headers 7 "+str(headers))
@@ -386,17 +400,17 @@ class brandAuth():
                     return False
                 try:
                     response = json.loads(response.text)
-                    response = response['resMsg']['vinInfo'][0]['basic']
-                    vehicle['vin'] = response['vin']
-                    vehicle['generation'] = response['modelYear']
+                    response = response["resMsg"]["vinInfo"][0]["basic"]
+                    vehicle["vin"] = response["vin"]
+                    vehicle["generation"] = response["modelYear"]
                 except:
-                    self.api_error('NOK login. Error in getting profile of vehicle: ' + vehicle + " " + response)
+                    self.api_error("NOK login. Error in getting profile of vehicle: " + vehicle + " " + response)
                     return False
-                if vehicle['vin'] == vin: self.vehicleId = vehicle['vehicleId']
+                if vehicle["vin"] == vin: self.vehicleId = vehicle["vehicleId"]
             if self.vehicleId is None:
-                self.api_error('NOK login. The VIN you entered is not in the vehicle list ' + vin)
+                self.api_error("NOK login. The VIN you entered is not in the vehicle list " + vin)
                 return False
-        else: self.vehicleId = vehicles[0]['vehicleId']
+        else: self.vehicleId = vehicles[0]["vehicleId"]
         logging.info("vehicleID %s", self.vehicleId)
         # the normal startup routine of the app is
         # profile
@@ -412,226 +426,216 @@ class brandAuth():
         logging.info("Finished successfull login procedure")
         return True
 
-    def login_brand(self, email, password, pin, vin):
-        self.pin = pin
-        url = "no URL set yet"
-        logging.info('entering login, car brand:  %s, email: %s', self.car_brand, email)
-        #self.get_constants()
-        logging.debug('login: constants %s %s %s %s %s %s', self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.__stamp__)
-        self.controlToken = self.accessToken = self.refreshToken = None
-        self.controlTokenExpiresAt = self.accessTokenExpiresAt = datetime(1970, 1, 1, 0, 0, 0)
-
-        # ---cookies----------------------------------
-        url = self.BaseURL + '/api/v1/user/oauth2/authorize?response_type=code&client_id=' + self.ServiceId + '&redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect&state=test&lang=en'
+    def get_cookies (self):
+        url = self.BaseURL + "/api/v1/user/oauth2/authorize?response_type=code&client_id=" + self.ServiceId + "&redirect_uri=" + self.BaseURL + "/api/v1/user/oauth2/redirect&state=test&lang=en"
         session = requests.Session()
         response = session.get(url)
         logging.debug("login URL 1 "+url)
         if response.status_code != 200:
-            self.api_error('NOK login: NOK cookie for login. Error: ' + str(response.status_code) + response.text)
+            self.api_error("NOK login: NOK cookie for login. Error: " + str(response.status_code) + response.text)
             return False
 
         self.cookies = session.cookies.get_dict()
 
-        # https: // prd.eu - ccapi.kia.com: 8080 / web / v1 / user / authorize?lang = en & cache = reset
-        # https: // prd.eu - ccapi.kia.com: 8080 / web / v1 / user / static / css / main.dbfc71fc.chunk.css
-        # https: // prd.eu - ccapi.kia.com: 8080 / web / v1 / user / static / js / 2.cf048054.chunk.js
-        # https: // prd.eu - ccapi.kia.com: 8080 / web / v1 / user / static / js / main.b922ef51.chunk.js
-        # try
-        # --- set language----------------------------------
-        url = self.BaseURL + '/api/v1/user/language'
-        headers = {
-            'Host': self.BaseHost,
-            'Content-Type': self.ContentJSON,
-            'Origin': self.BaseURL,
-            'Connection': self.Connection,
-            'Accept': self.Accept,
-            'User-Agent': self.UserAgentPreLogon,
-            'Referer': self.BaseURL + '/web/v1/user/authorize?lang=en&cache=reset',
-            'Accept-Language': self.AcceptLanguageShort,
-            'Accept-Encoding': self.AcceptEncoding
+    def get_device_id(self):
+        url = self.BaseURL + "/api/v1/spa/notifications/register"
+        registration_id = 1
+        theUid = str(uuid.uuid4())
+        payload = {
+            "pushRegId": registration_id,
+            "pushType": "GCM",
+            "uuid": theUid,
         }
-        data = {"lang": "en"}
-        logging.debug("login URL 2 "+url)
-        logging.debug("login headers 2 "+str(headers))
-        logging.debug("login data 2 "+str(data))
-        requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
-
-        # ---get deviceid----------------------------------
-        url = self.BaseURL + '/api/v1/spa/notifications/register'
+ 
         headers = {
-            'ccsp-service-id': self.ServiceId,
-            'cssp-application-id': self.CcspApplicationId,
-            'Content-Type': self.ContentJSON,
-            'Host': self.BaseHost,
-            'Connection': self.Connection,
-            'Accept': self.Accept,
-            'Accept-Encoding': self.AcceptEncoding,
-            'Accept-Language': self.AcceptLanguage,
-            'Stamp': self.__stamp__,
-            'User-Agent': self.UserAgent}
-        # what to do with the cookie? account=Nj<snip>>689c3
-        # what to do with the right PushRegId
-        data = {"pushRegId": "0827a4e6c94faa094fe20033ff7fdbbd3a7a789727546f2645a0f547f5db2a58", "pushType": "APNS", "uuid": str(uuid.uuid1())}
-        logging.debug("login URL 3 "+url)
-        logging.debug("login headers 3 "+str(headers))
-        logging.debug("login data 3 "+str(data))
-        response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
+            "ccsp-service-id": self.ServiceId,
+            "ccsp-application-id": self.CcspApplicationId,
+            "Stamp": self.__stamp__,
+            "Content-Type": self.ContentJSON,
+        }
+
+        response = requests.post(url, headers=headers, json=payload, timeout=self.timeout)
+        logging.debug(f"Get Device ID request: {headers} {payload} ")
+        logging.debug(f"Get Device ID response: {response} {response.encoding} {response.headers} {response.url}")
+        orig_req = response.request
+
         if response.status_code != 200:
-            self.api_error('NOK login: NOK deviceID. Error: ' + str(response.status_code) + " " + response.text)
+            self.api_error("NOK login: NOK deviceID. Error: " + str(response.status_code) + " " + response.text)
             return False
         try:
             response = json.loads(response.text)
-            self.deviceId = response['resMsg']['deviceId']
+            self.deviceId = response["resMsg"]["deviceId"]
             logging.info("deviceId %s", self.deviceId)
         except:
-            self.api_error('NOK login: Error in parsing /signing request: ' + response)
+            self.api_error("NOK login: Error in parsing /signing request: " + response)
             return False
+        return response
 
+    def set_language(self, lang="en"):
+        url = self.languageUrl # "/api/v1/user/language"
+        headers = {
+            "Host": self.BaseHost,
+            "Content-Type": self.ContentJSON,
+            "Origin": self.BaseURL,
+            "Connection": self.Connection,
+            "Accept": self.Accept,
+            "User-Agent": self.UserAgentPreLogon,
+            "Referer": self.BaseURL + "/web/v1/user/authorize?lang=en&cache=reset",
+            "Accept-Language": self.AcceptLanguageShort,
+            "Accept-Encoding": self.AcceptEncoding
+        }
+        data = {"lang": str(lang)}
+        logging.debug("language URL "+url+" headers "+str(headers)+" data "+str(data))
+        requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
 
-        # get session
-        # delete session
+    def login_brand(self, email, password, pin, vin):
+        self.pin = pin
+        url = "no URL set yet"
+        logging.info("entering login, car brand:  %s, email: %s", self.car_brand, email)
+        #self.get_constants()
+        logging.debug("login: constants %s %s %s %s %s %s", self.ServiceId, self.BasicToken, self.CcspApplicationId, self.BaseHost, self.BaseURL, self.__stamp__)
+        self.controlToken = self.accessToken = self.refreshToken = None
+        self.controlTokenExpiresAt = self.accessTokenExpiresAt = datetime(1970, 1, 1, 0, 0, 0)
+
+        # try
+        # ---get deviceid----------------------------------
+        if self.get_device_id() == False:
+            return False
+        # ---cookies----------------------------------
+        self.get_cookies()
+        # --- set language----------------------------------
+        self.set_language("nl")
 
         # ---signin----------------------------------
-        url = self.BaseURL + '/api/v1/user/signin'
+        url = self.BaseURL + "/api/v1/user/signin"
         headers = {
-            'Host': self.BaseHost,
-            'Content-Type': self.ContentJSON,
-            'Origin': self.BaseURL,
-            'Connection': self.Connection,
-            'Accept': self.Accept,
-            'User-Agent': self.UserAgentPreLogon,
-            'Referer': self.BaseURL+'/web/v1/user/signin',
-            'Accept-Language': self.AcceptLanguageShort,
-            'Stamp': self.__stamp__,
-            'Accept-Encoding': self.AcceptEncoding
+            "Host": self.BaseHost,
+            "Content-Type": self.ContentJSON,
+            "Origin": self.BaseURL,
+            "Connection": self.Connection,
+            "Accept": self.Accept,
+            "User-Agent": self.UserAgentPreLogon,
+            "Referer": self.BaseURL+"/web/v1/user/signin",
+            "Accept-Language": self.AcceptLanguageShort,
+            "Stamp": self.__stamp__,
+            "Accept-Encoding": self.AcceptEncoding
         }
         data = {"email": email, "password": password}
-        logging.debug("login URL 4 "+url)
-        logging.debug("login headers 4 "+str(headers))
-        logging.debug("login data 4 "+str(data))
+        logging.debug("sign in URL "+url+" headers "+str(headers)+" data "+str(data))
         response = requests.post(url, json=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
         if response.status_code != 200:
-            self.api_error('NOK login. Error: ' + str(response.status_code) + " " + response.text)
+            self.api_error("NOK login. Error: " + str(response.status_code) + " " + response.text)
             return False
         try:
             response = json.loads(response.text)
-            response = response['redirectUrl']
+            response = response["redirectUrl"]
             parsed = urlparse.urlparse(response)
-            authcode = ''.join(parse_qs(parsed.query)['code'])
+            authcode = "".join(parse_qs(parsed.query)["code"])
             logging.info("authCode %s", authcode)
         except:
-            self.api_error('NOK login. Error in parsing /signing request ' + response)
+            self.api_error("NOK login. Error in parsing /signing request " + response)
             return False
 
         # ---get accesstoken----------------------------------
-        url = self.BaseURL + '/api/v1/user/oauth2/token'
+        url = self.BaseURL + "/api/v1/user/oauth2/token"
         headers = {
-            'Host': self.BaseHost,
-            'Content-Type': self.ContentType,
-            'Accept-Encoding': self.AcceptEncoding,
-            'Connection': self.Connection,
-            'Accept': self.Accept,
-            'User-Agent': self.UserAgent,
-            'Accept-Language': self.AcceptLanguage,
-            'Stamp': self.__stamp__,
-            'Authorization': self.BasicToken
+            "Host": self.BaseHost,
+            "Content-Type": self.ContentType,
+            "Accept-Encoding": self.AcceptEncoding,
+            "Connection": self.Connection,
+            "Accept": self.Accept,
+            "User-Agent": self.UserAgent,
+            "Accept-Language": self.AcceptLanguage,
+            "Stamp": self.__stamp__,
+            "Authorization": self.BasicToken
         }
-        data = 'redirect_uri=' + self.BaseURL + '/api/v1/user/oauth2/redirect&code=' + authcode + '&grant_type=authorization_code'
-        logging.debug("login URL 5 "+url)
-        logging.debug("login headers 5 "+str(headers))
-        logging.debug("login data 5 "+str(data))
+        data = "redirect_uri=" + self.BaseURL + "/api/v1/user/oauth2/redirect&code=" + authcode + "&grant_type=authorization_code"
+        logging.debug("get token URL "+url+" headers "+str(headers)+" data "+str(data))
         response = requests.post(url, data=data, headers=headers, cookies=self.cookies, timeout=self.timeout)
         if response.status_code != 200:
-            self.api_error('NOK token. Error: ' + str(response.status_code) + " " + response.text)
+            self.api_error("NOK token. Error: " + str(response.status_code) + " " + response.text)
             return False
         try:
             response = json.loads(response.text)
-            self.accessToken = 'Bearer ' + response['access_token']
-            self.refreshToken = response['refresh_token']
-            self.accessTokenExpiresAt = datetime.now() + timedelta(seconds=response['expires_in'])
+            self.accessToken = "Bearer " + response["access_token"]
+            self.refreshToken = response["refresh_token"]
+            self.accessTokenExpiresAt = datetime.now() + timedelta(seconds=response["expires_in"])
             logging.info("accesstoken %s, refrestoken %s expiresAt %s", self.accessToken, self.refreshToken, self.accessTokenExpiresAt)
         except:
-            self.api_error('NOK login. Error in parsing /token request: ' + response)
+            self.api_error("NOK login. Error in parsing /token request: " + response)
             return False
         # notification/register
 
-        # user/profile    --> toevoegen bluelinky?
-        # setting/language --> toevoegen bluelinky?
-        # setting/service --> toevoegen bluelinky?
-
-        # vehicles
 
         # ---get vehicles----------------------------------
-        url = self.BaseURL + '/api/v1/spa/vehicles'
+        url = self.BaseURL + "/api/v1/spa/vehicles"
         headers = {
-            'Host': self.BaseHost,
-            'Accept': self.Accept,
-            'Authorization': self.accessToken,
-            'ccsp-application-id': self.CcspApplicationId,
-            'Accept-Language': self.AcceptLanguage,
-            'Accept-Encoding': self.AcceptEncoding,
-            'offset': '2',
-            'User-Agent': self.UserAgent,
-            'Connection': self.Connection,
-            'Content-Type': self.ContentJSON,
-            'Stamp': self.__stamp__,
-            'ccsp-device-id': self.deviceId
+            "Host": self.BaseHost,
+            "Accept": self.Accept,
+            "Authorization": self.accessToken,
+            "ccsp-application-id": self.CcspApplicationId,
+            "Accept-Language": self.AcceptLanguage,
+            "Accept-Encoding": self.AcceptEncoding,
+            "offset": "2",
+            "User-Agent": self.UserAgent,
+            "Connection": self.Connection,
+            "Content-Type": self.ContentJSON,
+            "Stamp": self.__stamp__,
+            "ccsp-device-id": self.deviceId
         }
         response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
-        logging.debug("login URL 6 "+url)
-        logging.debug("login headers 6 "+str(headers))
+        logging.debug("get vehicles URL "+url+" headers "+str(headers)+" data none")
         if response.status_code != 200:
-            self.api_error('NOK vehicles. Error: ' + str(response.status_code) + " " + response.text)
+            self.api_error("NOK vehicles. Error: " + str(response.status_code) + " " + response.text)
             return False
         try:
             response = json.loads(response.text)
             logging.debug("response %s", response)
-            vehicles = response['resMsg']['vehicles']
+            vehicles = response["resMsg"]["vehicles"]
             logging.debug("%s vehicles found", len(vehicles))
         except:
-            self.api_error('NOK login. Error in getting vehicles: ' + response)
+            self.api_error("NOK login. Error in getting vehicles: " + response)
             return False
         if len(vehicles) == 0:
-            self.api_error('NOK login. No vehicles found')
+            self.api_error("NOK login. No vehicles found")
             return False
         # ---get vehicleId----------------------------------
         self.vehicleId = None
         if len(vehicles) > 1:
             for vehicle in vehicles:
-                url = self.BaseURL + '/api/v1/spa/vehicles/' + vehicle['vehicleId'] + '/profile'
+                url = self.BaseURL + "/api/v1/spa/vehicles/" + vehicle["vehicleId"] + "/profile"
                 headers = {
-                    'Host': self.BaseHost,
-                    'Accept': self.Accept,
-                    'Authorization': self.accessToken,
-                    'ccsp-application-id': self.CcspApplicationId,
-                    'Accept-Language': self.AcceptLanguage,
-                    'Accept-Encoding': self.AcceptEncoding,
-                    'offset': '2',
-                    'User-Agent': self.UserAgent,
-                    'Connection': self.Connection,
-                    'Content-Type': self.ContentJSON,
-                    'Stamp': self.__stamp__,
-                    'ccsp-device-id': self.deviceId
+                    "Host": self.BaseHost,
+                    "Accept": self.Accept,
+                    "Authorization": self.accessToken,
+                    "ccsp-application-id": self.CcspApplicationId,
+                    "Accept-Language": self.AcceptLanguage,
+                    "Accept-Encoding": self.AcceptEncoding,
+                    "offset": "2",
+                    "User-Agent": self.UserAgent,
+                    "Connection": self.Connection,
+                    "Content-Type": self.ContentJSON,
+                    "Stamp": self.__stamp__,
+                    "ccsp-device-id": self.deviceId
                 }
-                logging.debug("login URL 7 "+url)
-                logging.debug("login headers 7 "+str(headers))
+                logging.debug("get vehicle ID URL "+url+" headers "+str(headers)+" data none")
                 response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
                 try:
                     response = json.loads(response.text)
-                    response = response['resMsg']['vinInfo'][0]['basic']
-                    vehicle['vin'] = response['vin']
-                    vehicle['generation'] = response['modelYear']
+                    response = response["resMsg"]["vinInfo"][0]["basic"]
+                    vehicle["vin"] = response["vin"]
+                    vehicle["generation"] = response["modelYear"]
                 except:
-                    self.api_error('NOK login. Error in getting profile of vehicle: ' + vehicle + " " + response)
+                    self.api_error("NOK login. Error in getting profile of vehicle: " + vehicle + " " + response)
                     return False
-                if vehicle['vin'] == vin: self.vehicleId = vehicle['vehicleId']
+                if vehicle["vin"] == vin: self.vehicleId = vehicle["vehicleId"]
             if self.vehicleId is None:
-                self.api_error('NOK login. The VIN you entered is not in the vehicle list ' + vin)
+                self.api_error("NOK login. The VIN you entered is not in the vehicle list " + vin)
                 return False
-        else: self.vehicleId = vehicles[0]['vehicleId']
+        else: self.vehicleId = vehicles[0]["vehicleId"]
         logging.info("vehicleID %s", self.vehicleId)
         # except:
-            # self.api_error('Login failed. URL: "'+ url + '", response: "' + response.text)
+            # self.api_error("Login failed. URL: '"+ url + "', response: '" + response.text)
             # return False
         # the normal startup routine of the app is
         # profile
@@ -649,31 +653,31 @@ class brandAuth():
 
     def defaultHeaders(self):
         return {
-            'Authorization': self.accessToken,
-            #'offset': (new Date().getTimezoneOffset() / 60).toFixed(2),
-            'offset': '2',
-            'ccsp-device-id': self.deviceId,
-            'ccsp-application-id': self.CcspApplicationId,
-            'Content-Type': 'application/json'
+            "Authorization": self.accessToken,
+            #"offset": (new Date().getTimezoneOffset() / 60).toFixed(2),
+            "offset": "2",
+            "ccsp-device-id": self.deviceId,
+            "ccsp-application-id": self.CcspApplicationId,
+            "Content-Type": "application/json"
         }
 
 class vehicleInteraction(brandAuth):
         
     def api_get_valetmode(self):
-        url = self.BaseURL + '/api/v1/spa/vehicles/' + self.vehicleId + '/status/valet'
+        url = self.BaseURL + "/api/v1/spa/vehicles/" + self.vehicleId + "/status/valet"
         headers = {
-            'Host': self.BaseHost,
-            'Accept': self.Accept,
-            'Authorization': self.accessToken,
-            'ccsp-application-id': self.CcspApplicationId,
-            'Accept-Language': self.AcceptLanguage,
-            'Accept-Encoding': self.AcceptEncoding,
-            'offset': '2',
-            'User-Agent': self.UserAgent,
-            'Connection': self.Connection,
-            'Content-Type': self.ContentJSON,
-            'Stamp': self.__stamp__,
-            'ccsp-device-id': self.deviceId
+            "Host": self.BaseHost,
+            "Accept": self.Accept,
+            "Authorization": self.accessToken,
+            "ccsp-application-id": self.CcspApplicationId,
+            "Accept-Language": self.AcceptLanguage,
+            "Accept-Encoding": self.AcceptEncoding,
+            "offset": "2",
+            "User-Agent": self.UserAgent,
+            "Connection": self.Connection,
+            "Content-Type": self.ContentJSON,
+            "Stamp": self.__stamp__,
+            "ccsp-device-id": self.deviceId
         }
         response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
         if response.status_code == 200:

@@ -105,9 +105,10 @@ class BlueLink:
         self.pollcounter = 7
         logging.debug("trying to login")
         self.vehicle.stamp = self.stampProvider.getStamp()
-        for i in range(1, 4):
+        for i in range(1, 2):
             try:
-                self.initSuccess = self.vehicle.login_legacy(self.email, self.password, self.pin, self.vin)
+                #self.initSuccess = self.vehicle.login_legacy(self.email, self.password, self.pin, self.vin)
+                self.initSuccess = self.vehicle.login_brand(self.email, self.password, self.pin, self.vin)
                 if self.initSuccess:
                     logging.debug("login result: " + str(self.initSuccess))
                     return
@@ -119,7 +120,6 @@ class BlueLink:
         
         logging.debug("login result: " + str(self.initSuccess))
         return 
-
 
     def pollcar(self, manualForcePoll):
         # get statusses from car; either cache or refreshed

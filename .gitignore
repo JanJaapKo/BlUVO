@@ -1,6 +1,6 @@
 #my personal parameter file
 params.py
-bluvo.log
+bluvo_test.log
 plugin_old.py
 publ.sh
 session.pkl
