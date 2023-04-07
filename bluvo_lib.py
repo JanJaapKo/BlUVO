@@ -247,7 +247,7 @@ class brandAuth():
             response = response["redirectUrl"]
             parsed = urlparse.urlparse(response)
             authcode = "".join(parse_qs(parsed.query)["code"])
-            logging.info("authCode %s", authcode)
+            logging.debug("authCode %s", authcode)
         except:
             self.api_error("NOK login. Error in parsing /signing request " + response)
             return False
@@ -324,7 +324,7 @@ class brandAuth():
         try:
             response = json.loads(response.text)
             self.deviceId = response["resMsg"]["deviceId"]
-            logging.info("deviceId %s", self.deviceId)
+            logging.debug("deviceId %s", self.deviceId)
         except:
             self.api_error("NOK login: Error in parsing /signing request: " + response)
             return False
@@ -411,7 +411,7 @@ class brandAuth():
                 self.api_error("NOK login. The VIN you entered is not in the vehicle list " + vin)
                 return False
         else: self.vehicleId = vehicles[0]["vehicleId"]
-        logging.info("vehicleID %s", self.vehicleId)
+        logging.debug("vehicleID %s", self.vehicleId)
         # the normal startup routine of the app is
         # profile
         # register
@@ -423,7 +423,7 @@ class brandAuth():
         # self.api_set_wakeup()
         # api_get_valetmode()
         # api_get_finaldestination()
-        logging.info("Finished successfull login procedure")
+        logging.info("Finished successfull login_legacy procedure")
         return True
 
     def get_cookies (self):
@@ -465,7 +465,7 @@ class brandAuth():
         try:
             response = json.loads(response.text)
             self.deviceId = response["resMsg"]["deviceId"]
-            logging.info("deviceId %s", self.deviceId)
+            logging.debug("deviceId %s", self.deviceId)
         except:
             self.api_error("NOK login: Error in parsing /signing request: " + response)
             return False
@@ -531,7 +531,7 @@ class brandAuth():
             response = response["redirectUrl"]
             parsed = urlparse.urlparse(response)
             authcode = "".join(parse_qs(parsed.query)["code"])
-            logging.info("authCode %s", authcode)
+            logging.debug("authCode %s", authcode)
         except:
             self.api_error("NOK login. Error in parsing /signing request " + response)
             return False
@@ -560,7 +560,7 @@ class brandAuth():
             self.accessToken = "Bearer " + response["access_token"]
             self.refreshToken = response["refresh_token"]
             self.accessTokenExpiresAt = datetime.now() + timedelta(seconds=response["expires_in"])
-            logging.info("accesstoken %s, refrestoken %s expiresAt %s", self.accessToken, self.refreshToken, self.accessTokenExpiresAt)
+            logging.debug("accesstoken %s, refrestoken %s expiresAt %s", self.accessToken, self.refreshToken, self.accessTokenExpiresAt)
         except:
             self.api_error("NOK login. Error in parsing /token request: " + response)
             return False
@@ -633,7 +633,7 @@ class brandAuth():
                 self.api_error("NOK login. The VIN you entered is not in the vehicle list " + vin)
                 return False
         else: self.vehicleId = vehicles[0]["vehicleId"]
-        logging.info("vehicleID %s", self.vehicleId)
+        logging.debug("vehicleID %s", self.vehicleId)
         # except:
             # self.api_error("Login failed. URL: '"+ url + "', response: '" + response.text)
             # return False

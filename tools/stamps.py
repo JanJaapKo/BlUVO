@@ -70,7 +70,7 @@ class postOffice():
         
     def checkStampValid(self):
         #self.getOffset()
-        logging.info("PostOffice: we have stamp {0} of {1} active, valid = {2} until {4}, the list expires at {3}".format(self.__activeStamp,len(self.stampList),self.__stampValid,self.file_expiry_date.strftime("%Y-%m-%d %H:%M:%S"),self.stamp_expiry_DT.strftime("%Y-%m-%d %H:%M:%S")) )
+        logging.debug("PostOffice: we have stamp {0} of {1} active, valid = {2} until {4}, the list expires at {3}".format(self.__activeStamp,len(self.stampList),self.__stampValid,self.file_expiry_date.strftime("%Y-%m-%d %H:%M:%S"),self.stamp_expiry_DT.strftime("%Y-%m-%d %H:%M:%S")) )
         if self.stampFileValid == False:
             #need to get new stamp list
             if self.__use_local__:
