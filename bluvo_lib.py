@@ -583,7 +583,12 @@ class brandAuth():
             "Stamp": self.__stamp__,
             "ccsp-device-id": self.deviceId
         }
-        response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
+
+        try:
+            response = requests.get(url, headers=headers, cookies=self.cookies, timeout=self.timeout)
+        except requests.exceptions.RequestException as exp:
+            self.api_error("Login RequestException: " + str(exp))
+            return False
         logging.debug("get vehicles URL "+url+" headers "+str(headers)+" data none")
         if response.status_code != 200:
             self.api_error("NOK vehicles. Error: " + str(response.status_code) + " " + response.text)
