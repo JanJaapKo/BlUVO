@@ -50,7 +50,11 @@ class postOffice():
         logging.debug("PostOffice: getStampFromUrl: reading from URL: " + url)
         body = requests.get(url)
         logging.debug("PostOffice: received response: {0}".format(body))
-        stampStruct = body.json()
+        if body.status_code == 200:
+            stampStruct = body.json()
+        else:
+            logging.error("unable to retreive stamp file from server: "+str(body.status_code))
+            raise PostOfficeException("unable to retreive stamp file from server")
         self.stampList = stampStruct["stamps"]
         stampsGenerated = stampStruct["generated"][:-1] #date time of stamps generated, stripping the UTC z
         self.__frequency = stampStruct["frequency"] #interval between stamps in msec
@@ -76,7 +80,7 @@ class postOffice():
             if self.__use_local__:
                 self.getStampListFromLocal()
             else:
-                self.getStampListFromUrl()
+                self.getStampListFromUrl()                    
             logging.debug("PostOffice: we have " + str(len(self.stampList)) + " stamps, using " + str(self.__activeStamp) + " the list expires at " + self.file_expiry_date.strftime("%Y-%m-%d %H:%M:%S"))
         if self.stamp_expiry_DT <= datetime.datetime.now():
             self.__stampValid = False
@@ -101,3 +105,10 @@ class postOffice():
         self.getOffset()
         self.__stampFileValid = ((datetime.datetime.now() < self.file_expiry_date) and self.__activeStamp<=len(self.stampList) and len(self.stampList)>0)
         return self.__stampFileValid
+
+class PostOfficeException(Exception):
+    """Base class for exceptions."""
+    """Stamp is invalid"""
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)

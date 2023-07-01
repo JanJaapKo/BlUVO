@@ -58,11 +58,13 @@ class brandAuth():
         if self.car_brand == "kia":
             self.ServiceId = "fdc85c00-0a2f-4c64-bcb4-2cfb1500730a"
             self.BasicToken = "Basic ZmRjODVjMDAtMGEyZi00YzY0LWJjYjQtMmNmYjE1MDA3MzBhOnNlY3JldA=="
-            self.CcspApplicationId = "693a33fa-c117-43f2-ae3b-61a02d24f417"
+            #self.CcspApplicationId = "693a33fa-c117-43f2-ae3b-61a02d24f417"
+            self.CcspApplicationId = "a2b8469b-30a3-4361-8e13-6fceea8fbe74"# app id per July 1st, 2023
         elif self.car_brand == "hyundai":
             self.ServiceId = "6d477c38-3ca4-4cf3-9557-2a1929a94654" #clientId in bluelinky
             self.BasicToken = "Basic NmQ0NzdjMzgtM2NhNC00Y2YzLTk1NTctMmExOTI5YTk0NjU0OktVeTQ5WHhQekxwTHVvSzB4aEJDNzdXNlZYaG10UVI5aVFobUlGampvWTRJcHhzVg=="
-            self.CcspApplicationId = "014d2225-8495-4735-812d-2616334fd15d"
+            #self.CcspApplicationId = "014d2225-8495-4735-812d-2616334fd15d"
+            self.CcspApplicationId = "1eba27d2-9a5b-4eba-8ec7-97eb6c62fb51" # app id per July 1st, 2023
         else:
             self.api_error("Carbrand not OK.")
             return False
