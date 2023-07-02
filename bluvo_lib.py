@@ -441,11 +441,16 @@ class brandAuth():
 
     def get_device_id(self):
         url = self.BaseURL + "/api/v1/spa/notifications/register"
-        registration_id = 1
+        #generate random registration id
+        import random
+        ran = random.randrange(10 ** 80)
+        myhex = "%064x" % ran
+        registration_id = myhex[:64]
+
         theUid = str(uuid.uuid4())
         payload = {
             "pushRegId": registration_id,
-            "pushType": "GCM",
+            "pushType": "APNS",
             "uuid": theUid,
         }
  
