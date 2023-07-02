@@ -3,10 +3,10 @@
 #           Author:     pierre levres, 2020
 #
 """
-<plugin key="bluvo" name="Kia UVO and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="2.1.0">
+<plugin key="bluvo" name="Kia Connect and Hyundai Bluelink" author="Jan-Jaap Kostelijk" version="2.2.0">
     <description>
-        <h2>BlUvo Plugin</h2>
-        A plugin for Kia UVO and Hyundai Bluelink EV's (generally MY2020 and beyond). Use at own risk!
+        <h2>Bluelink/Connect Plugin</h2>
+        A plugin for Kia Connect and Hyundai Bluelink EV's (generally MY2020 and beyond). Use at own risk!
         <br/>
         This plugin will communicate with servers of Kia and Hyundai and through them with your car.
         Be sure to move kialist.txt and hyundailist.txt into your domoticz homefolder.
@@ -14,8 +14,8 @@
         Polling your car means draining 12V battery and worst case, an empty battery.
         Educate yourself by googling "auxiliary battery drain Niro Kona Soul"
         <br/><br/>
-        Email, Password, Pin are same as in you Bluelink or UVO app. VIN is optional, only needed if you have more than one car on your account.<br/>
-        Cartype is mandatory, to distinguish Kia or Hyundai BlueLink operation. It is also used for ABRP integration. <br/><br/>
+        Email, Password, Pin are same as in you Bluelink or Connect app. VIN is optional, only needed if you have more than one car on your account.<br/>
+        Cartype is mandatory, to distinguish Kia Connect or Hyundai BlueLink operation. It is also used for ABRP integration. <br/><br/>
         <h3>ABRP (optional) and weather (even more optional) </h3>
         This plugin will send current state of charge (SoC) and local temperature to your ABRP account to have the most accurate route planning, even on the road. <br/>
         Your ABRP token can be found here: Settings - Car model, 
