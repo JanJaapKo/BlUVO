@@ -2,6 +2,7 @@ import random
 import logging
 import requests
 import datetime
+import json
 
 class postOffice():
     def __init__(self, carbrand, appId = "", local=False):
@@ -32,11 +33,22 @@ class postOffice():
         self.__use_local__ = use
         
     def getStampListFromLocal(self):
-        filename = self.carbrand+'list.txt'
+        filename = self.carbrand + self.__appId + ".json"
         logging.info('PostOffice: CreateStamp: reading stamp from file: ' + filename)
-        with open(self.carbrand+'list.txt') as f:
-            self.stampList = f.readlines()
+
+        f = open(filename, "rt")
+        stampStruct = f.read()
+        stampStruct = json.loads(stampStruct)
         self.file_expiry_date = datetime.datetime.now() + datetime.timedelta(days=self.file_expiry_days)
+
+        self.stampList = stampStruct["stamps"]
+        stampsGenerated = stampStruct["generated"][:-1] #date time of stamps generated, stripping the UTC z
+        self.__frequency = stampStruct["frequency"] #interval between stamps in msec
+        self.__stampsGenerated = datetime.datetime.fromisoformat(stampsGenerated)
+        self.getOffset()
+        logging.info("PostOffice: received stamps list, length: {0} generated at {1} with an interval of {2} seconds".format(len(self.stampList),self.__stampsGenerated, self.__frequency/1000))
+        self.file_expiry_date = self.__stampsGenerated + datetime.timedelta(seconds=(self.__frequency/1000*len(self.stampList)))
+
         return True
 
     def getOffset(self):
